@@ -1,0 +1,11 @@
+<h1>Загрузить фотографию</h1>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Загрузить</button>
+</form>
+<a href="{% url 'photo_list' %}">Назад к списку фотографий</a>
+
+{% if not user.is_authenticated %}
+    <p>Вы загружаете фотографию как анонимный пользователь. Она не будет привязана к вашему аккаунту.</p>
+{% endif %}

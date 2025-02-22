@@ -1,0 +1,15 @@
+<h1>Фотографии</h1>
+<div class="year-filter">
+    <h3>Фильтр по годам:</h3>
+    {% for year in years %}
+        <a href="{% url 'photos_by_year' year %}">{{ year }}</a>{% if not forloop.last %} | {% endif %}
+    {% endfor %}
+</div>
+{% for photo in photos %}
+    <div>
+        <h2><a href="{% url 'photo_detail' photo.pk %}">{{ photo.title }}</a></h2>
+        <img src="{{ photo.image.url }}" alt="{{ photo.title }}" style="width: 20%; height: auto;">
+        <p>{{ photo.description }}</p>
+    </div>
+{% endfor %}
+<a href="{% url 'home' %}">Домой</a>

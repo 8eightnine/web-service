@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Фотографии за {{ year }} год</title>
+</head>
+<body>
+    <h1>Фотографии за {{ year }} год</h1>
+    
+    {% if photos %}
+        <div class="photo-grid">
+            {% for photo in photos %}
+                <div class="photo-item">
+                    <a href="{% url 'photo_detail' photo.pk %}">
+                        <img src="{{ photo.image.url }}" alt="{{ photo.title }}" style="width: 200px; height: auto;">
+                        <h3>{{ photo.title }}</h3>
+                    </a>
+                    <p>Загружено: {{ photo.uploaded_at|date:"d.m.Y" }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>Нет фотографий за {{ year }} год.</p>
+    {% endif %}
+    
+    <p><a href="{% url 'photo_list' %}">Назад к списку фотографий</a></p>
+</body>
+</html>
