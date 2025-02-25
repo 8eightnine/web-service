@@ -1,6 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
 <h1>{{ photo.title }}</h1>
 <img src="{{ photo.image.url }}" alt="{{ photo.title }}" style="width: 30%; height: auto;">
 <p>{{ photo.description }}</p>
 <p>Загружено пользователем: {{ photo.uploaded_by.username }}</p>
 <p>Дата загрузки: {{ photo.uploaded_at }}</p>
 <a href="{% url 'photo_list' %}">Назад к списку фотографий</a>
+{% endblock %}
