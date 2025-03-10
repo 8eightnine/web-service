@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{% load photo_filters %}
+
 {% block title %}Фотографии{% endblock %}
 
 {% block content %}
@@ -8,13 +10,30 @@
         <a href="{% url 'photos_by_year' year %}">{{ year }}</a>{% if not forloop.last %} | {% endif %}
     {% endfor %}
 </div>
+
+{% if user.is_authenticated %}
+    <div class="user-stats">
+        <p>Количество загрузок: {{ user|user_photos_count }}</p>
+    </div>
+{% endif %}
+
 <div class="photo-grid">
     {% for photo in photos %}
         <div class="photo-card">
-            <h2><a href="{% url 'photo_detail' photo.pk %}">{{ photo.title }}</a></h2>
+            <h2><a href="{% url 'photo_detail' photo.pk %}">{{ photo.title|truncate_title }}</a></h2>
             <img src="{{ photo.image.url }}" alt="{{ photo.title }}">
-            <p>{{ photo.description }}</p>
+            <p>{{ photo.description|truncatewords:20 }}</p>
+            <p class="photo-meta">
+                Загружено: {{ photo.uploaded_at|date:"d.m.Y H:i" }}
+                {% if photo.uploaded_by %}
+                    пользователем {{ photo.uploaded_by.username }}
+                {% else %}
+                    анонимно
+                {% endif %}
+            </p>
         </div>
+    {% empty %}
+        <p>Нет доступных фотографий.</p>
     {% endfor %}
 </div>
 {% endblock %}

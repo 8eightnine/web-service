@@ -24,9 +24,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home_page, name='home'),  # Главная страница
     path('photos/', include('photos.urls')),
-    path('login/', views.login_page, name='login'),  # Страница входа
-    path('register/', views.register_page,
-         name='register'),  # Страница регистрации
+    path('login/', views.login_view, name='login'),  # Страница входа
+    path('register/', views.register_view, name='register'),  # Страница регистрации
+    path('logout/', views.logout_view, name='logout'),  # Заменяем LogoutView на нашу функцию
 ]
 
 if settings.DEBUG:

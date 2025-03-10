@@ -15,8 +15,8 @@
                 <li><a href="{% url 'photo_list' %}">Фотографии</a></li>
                 {% if user.is_authenticated %}
                     <li><a href="{% url 'upload_photo' %}">Загрузить фото</a></li>
-                    <li>Профиль</a></li>
-                    <li>Выйти</a></li>
+                    <li><a>Привет, {{ user.username }}!</a></li>
+                    <li><a href="{% url 'logout' %}">Выйти</a></li>
                 {% else %}
                     <li><a href="{% url 'login' %}">Войти</a></li>
                     <li><a href="{% url 'register' %}">Регистрация</a></li>
