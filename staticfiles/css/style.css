@@ -151,3 +151,89 @@ button:hover {
     color: #666;
     margin-top: 0.5rem;
 }
+
+footer {
+    background-color: #333;
+    color: white;
+    padding: 2rem 0;
+    margin-top: 2rem;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+}
+
+.footer-info, .footer-links, .footer-social {
+    text-align: center;
+}
+
+.footer-links a, .footer-social a {
+    color: white;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.footer-links a:hover, .footer-social a:hover {
+    color: #007bff;
+}
+
+.photo-card p a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.upload-time {
+    font-style: italic;
+    color: #666;
+}
+
+@media (max-width: 768px) {
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .footer-info, .footer-links, .footer-social {
+        padding: 1rem 0;
+        border-bottom: 1px solid #555;
+    }
+    
+    .footer-social {
+        border-bottom: none;
+    }
+}
+
+.photo-card h2 {
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.photo-card h2 a {
+    color: #333;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.photo-card h2 a:hover {
+    color: #007bff;
+}
+
+.photo-card .description {
+    margin: 1rem 0;
+}
+
+main {
+    min-height: calc(100vh - 200px);
+    padding-bottom: 2rem;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}

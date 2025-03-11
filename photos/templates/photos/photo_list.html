@@ -11,20 +11,14 @@
     {% endfor %}
 </div>
 
-{% if user.is_authenticated %}
-    <div class="user-stats">
-        <p>Количество загрузок: {{ user|user_photos_count }}</p>
-    </div>
-{% endif %}
-
 <div class="photo-grid">
     {% for photo in photos %}
         <div class="photo-card">
             <h2><a href="{% url 'photo_detail' photo.pk %}">{{ photo.title|truncate_title }}</a></h2>
             <img src="{{ photo.image.url }}" alt="{{ photo.title }}">
-            <p>{{ photo.description|truncatewords:20 }}</p>
+            <p>{{ photo.description|truncatechars:20}}</p>
             <p class="photo-meta">
-                Загружено: {{ photo.uploaded_at|date:"d.m.Y H:i" }}
+                Загружено: {{ photo.uploaded_at|time_since_upload }}
                 {% if photo.uploaded_by %}
                     пользователем {{ photo.uploaded_by.username }}
                 {% else %}

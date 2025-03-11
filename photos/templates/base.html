@@ -12,14 +12,12 @@
         <nav class="main-nav">
             <ul>
                 <li><a href="{% url 'home' %}">Главная</a></li>
-                <li><a href="{% url 'photo_list' %}">Фотографии</a></li>
+                <li><a href="{% url 'upload_photo' %}">Загрузить фото</a></li>
                 {% if user.is_authenticated %}
-                    <li><a href="{% url 'upload_photo' %}">Загрузить фото</a></li>
-                    <li><a>Привет, {{ user.username }}!</a></li>
+                    <li>Привет, {{ user.username }}!</li>
                     <li><a href="{% url 'logout' %}">Выйти</a></li>
                 {% else %}
                     <li><a href="{% url 'login' %}">Войти</a></li>
-                    <li><a href="{% url 'register' %}">Регистрация</a></li>
                 {% endif %}
             </ul>
         </nav>
@@ -28,8 +26,6 @@
         {% block content %}
         {% endblock %}
     </main>
-    <footer>
-        <p>&copy; 2025 Фотогалерея</p>
-    </footer>
+    {% include 'includes/footer.html' %}
 </body>
 </html>

@@ -1,9 +1,28 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>{{ photo.title }}</h1>
-<img src="{{ photo.image.url }}" alt="{{ photo.title }}" style="width: 30%; height: auto;">
-<p>{{ photo.description }}</p>
-<p>Загружено пользователем: {{ photo.uploaded_by.username }}</p>
-<p>Дата загрузки: {{ photo.uploaded_at }}</p>
-<a href="{% url 'photo_list' %}">Назад к списку фотографий</a>
+<div class="container">
+    <div class="photo-detail-card">
+        <h1 class="photo-title">{{ photo.title }}</h1>
+        <div class="photo-image">
+            <img src="{{ photo.image.url }}" alt="{{ photo.title }}">
+        </div>
+        <div class="photo-info">
+            <div class="upload-info">
+                <span class="uploaded-by">Загружено пользователем: {{ photo.uploaded_by.username }}</span>
+                <span class="upload-date">Дата загрузки: {{ photo.uploaded_at|date:"d.m.Y H:i" }}</span>
+            </div>
+            <div class="photo-description">
+                <h3>Описание:</h3>
+                <p>{{ photo.description }}</p>
+            </div>
+        </div>
+        <div class="comments-section">
+            <h3>Комментарии:</h3>
+            <!-- Здесь будет секция с комментариями -->
+        </div>
+        <div class="back-link">
+            <a href="{% url 'photo_list' %}">Назад к списку фотографий</a>
+        </div>
+    </div>
+</div>
 {% endblock %}
