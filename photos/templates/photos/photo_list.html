@@ -1,3 +1,4 @@
+<!-- photos/templates/photos/photo_list.html -->
 {% extends 'base.html' %}
 {% load photo_filters %}
 
@@ -13,19 +14,21 @@
 
 <div class="photo-grid">
     {% for photo in photos %}
-        <div class="photo-card">
-            <h2><a href="{% url 'photo_detail' photo.pk %}">{{ photo.title|truncate_title }}</a></h2>
-            <img src="{{ photo.image.url }}" alt="{{ photo.title }}">
-            <p>{{ photo.description|truncatechars:20}}</p>
-            <p class="photo-meta">
-                Загружено: {{ photo.uploaded_at|time_since_upload }}
-                {% if photo.uploaded_by %}
-                    пользователем {{ photo.uploaded_by.username }}
-                {% else %}
-                    анонимно
-                {% endif %}
-            </p>
-        </div>
+        <a href="{% url 'photo_detail' photo.pk %}" class="photo-card-link">
+            <div class="photo-card">
+                <h2>{{ photo.title|truncate_title }}</h2>
+                <img src="{{ photo.image.url }}" alt="{{ photo.title }}">
+                <p>{{ photo.description|truncatechars:20}}</p>
+                <p class="photo-meta">
+                    Загружено: {{ photo.uploaded_at|time_since_upload }}
+                    {% if photo.uploaded_by %}
+                        пользователем {{ photo.uploaded_by.username }}
+                    {% else %}
+                        анонимно
+                    {% endif %}
+                </p>
+            </div>
+        </a>
     {% empty %}
         <p>Нет доступных фотографий.</p>
     {% endfor %}

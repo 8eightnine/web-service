@@ -1,16 +1,58 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Загрузить фотографию</h1>
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Загрузить</button>
-</form>
-<a href="{% url 'photo_list' %}">Назад к списку фотографий</a>
+<div class="upload-container">
+    <div class="upload-form">
+        <h1>Загрузить фотографию</h1>
+        <form method="post" enctype="multipart/form-data" id="uploadForm">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Загрузить</button>
+        </form>
+        <div class="back-link">
+            <a href="{% url 'photo_list' %}">Назад к списку фотографий</a>
+        </div>
+        <br>
+        {% if not user.is_authenticated %}
+            <p>Вы загружаете фотографию как анонимный пользователь. Она не будет привязана к вашему аккаунту.</p>
+        {% endif %}
+    </div>
 
-{% if not user.is_authenticated %}
-    <p>Вы загружаете фотографию как анонимный пользователь. Она не будет привязана к вашему аккаунту.</p>
-{% endif %}
+    <div class="preview-container">
+        <div id="imagePreview"></div>
+        <h3 class="preview-title" id="titlePreview"></h3>
+        <p class="preview-description" id="descriptionPreview"></p>
+    </div>
+</div>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const titleInput = document.querySelector('input[name="title"]');
+    const descInput = document.querySelector('textarea[name="description"]');
+    const imageInput = document.querySelector('input[name="image"]');
+    
+    titleInput.addEventListener('input', function() {
+        document.getElementById('titlePreview').textContent = this.value;
+    });
+    
+    descInput.addEventListener('input', function() {
+        document.getElementById('descriptionPreview').textContent = this.value;
+    });
+    
+    imageInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                const preview = document.getElementById('imagePreview');
+                preview.innerHTML = '';
+                preview.appendChild(img);
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+});
+</script>
 {% endblock %}

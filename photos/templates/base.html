@@ -11,7 +11,11 @@
     <header>
         <nav class="main-nav">
             <ul>
-                <li><a href="{% url 'home' %}">Главная</a></li>
+                <li>
+                    <a href="{% url 'home' %}" class="home-icon">
+                        <img src="{% static 'icon.png' %}" alt="Главная">
+                    </a>
+                </li>
                 <li><a href="{% url 'upload_photo' %}">Загрузить фото</a></li>
                 {% if user.is_authenticated %}
                     <li>Привет, {{ user.username }}!</li>
