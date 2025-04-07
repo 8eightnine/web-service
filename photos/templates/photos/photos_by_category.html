@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load photo_filters %}
+
+{% block title %}Фотографии категории {{ category.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Фотографии категории: {{ category.name }}</h1>
+    
+    <div class="category-description">
+        <p>{{ category.description }}</p>
+    </div>
+    
+    <div class="photo-grid">
+        {% for photo in photos %}
+            <a href="{% if photo.slug %}{% url 'photo_detail_slug' photo.slug %}{% else %}{% url 'photo_detail' photo.pk %}{% endif %}" class="photo-card-link">
+                <div class="photo-card">
+                    <h2>{{ photo.title|truncate_title }}</h2>
+                    <img src="{{ photo.image.url }}" alt="{{ photo.title }}">
+                    <p>{{ photo.description|truncatechars:20}}</p>
+                    <p class="photo-meta">
+                        Загружено: {{ photo.uploaded_at|time_since_upload }}
+                        {% if photo.uploaded_by %}
+                            пользователем {{ photo.uploaded_by.username }}
+                        {% else %}
+                            анонимно
+                        {% endif %}
+                    </p>
+                </div>
+            </a>
+        {% empty %}
+            <p>В этой категории пока нет фотографий.</p>
+        {% endfor %}
+    </div>
+    
+    <div class="back-link">
+        <a href="{% url 'photo_list' %}">Назад к списку фотографий</a>
+    </div>
+</div>
+{% endblock %}

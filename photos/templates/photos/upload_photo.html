@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 
+{% block title %}Загрузить фотографию{% endblock %}
+
 {% block content %}
 <div class="upload-container">
     <div class="upload-form">
@@ -12,16 +14,21 @@
         <div class="back-link">
             <a href="{% url 'photo_list' %}">Назад к списку фотографий</a>
         </div>
-        <br>
+        
         {% if not user.is_authenticated %}
-            <p>Вы загружаете фотографию как анонимный пользователь. Она не будет привязана к вашему аккаунту.</p>
+            <div class="anonymous-notice">
+                <p>Вы загружаете фотографию как анонимный пользователь. Она не будет привязана к вашему аккаунту.</p>
+            </div>
         {% endif %}
     </div>
 
     <div class="preview-container">
-        <div id="imagePreview"></div>
+        <h2>Предпросмотр</h2>
+        <div id="imagePreview">
+            <p>Изображение появится здесь</p>
+        </div>
         <h3 class="preview-title" id="titlePreview"></h3>
-        <p class="preview-description" id="descriptionPreview"></p>
+        <div class="preview-description" id="descriptionPreview"></div>
     </div>
 </div>
 
@@ -32,11 +39,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const imageInput = document.querySelector('input[name="image"]');
     
     titleInput.addEventListener('input', function() {
-        document.getElementById('titlePreview').textContent = this.value;
+        document.getElementById('titlePreview').textContent = this.value || 'Название фотографии';
     });
     
     descInput.addEventListener('input', function() {
-        document.getElementById('descriptionPreview').textContent = this.value;
+        document.getElementById('descriptionPreview').textContent = this.value || 'Описание фотографии';
     });
     
     imageInput.addEventListener('change', function() {
@@ -53,6 +60,15 @@ document.addEventListener('DOMContentLoaded', function() {
             reader.readAsDataURL(file);
         }
     });
+    
+    // Initialize with default text if fields are empty
+    if (titleInput.value) {
+        document.getElementById('titlePreview').textContent = titleInput.value;
+    }
+    
+    if (descInput.value) {
+        document.getElementById('descriptionPreview').textContent = descInput.value;
+    }
 });
 </script>
 {% endblock %}

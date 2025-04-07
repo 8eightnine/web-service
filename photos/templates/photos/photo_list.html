@@ -5,32 +5,120 @@
 {% block title %}Фотографии{% endblock %}
 
 {% block content %}
-<div class="year-filter">
-    <h3>Фильтр по годам:</h3>
-    {% for year in years %}
-        <a href="{% url 'photos_by_year' year %}">{{ year }}</a>{% if not forloop.last %} | {% endif %}
-    {% endfor %}
+<div class="filters-container">
+    <div class="filters-row">
+        <div class="filter-group">
+            <h3>Фильтр по годам</h3>
+            <div class="filter-dropdown">
+                <select id="year-filter" onchange="filterByYear(this.value)">
+                    <option value="">Все годы</option>
+                    {% for year in years %}
+                        <option value="{{ year }}">{{ year }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+        <div class="filter-group">
+            <h3>Фильтр по категориям</h3>
+            <div class="filter-dropdown">
+                <select id="category-filter" onchange="filterByCategory(this.value)">
+                    <option value="">Все категории</option>
+                    {% for category in categories %}
+                        <option value="{{ category.slug }}" {% if current_category == category.slug %}selected{% endif %}>{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+        <div class="filter-group">
+            <h3>Сортировка</h3>
+            <div class="filter-dropdown">
+                <select id="sort-filter" onchange="sortPhotos(this.value)">
+                    <option value="title" {% if current_sort == 'title' %}selected{% endif %}>По названию (А-Я)</option>
+                    <option value="-title" {% if current_sort == '-title' %}selected{% endif %}>По названию (Я-А)</option>
+                    <option value="-uploaded_at" {% if current_sort == '-uploaded_at' %}selected{% endif %}>Сначала новые</option>
+                    <option value="uploaded_at" {% if current_sort == 'uploaded_at' %}selected{% endif %}>Сначала старые</option>
+                </select>
+            </div>
+        </div>
+    </div>
 </div>
+
+<a href="{% url 'upload_photo' %}" class="add-button">Добавить новую фотографию</a>
 
 <div class="photo-grid">
     {% for photo in photos %}
-        <a href="{% url 'photo_detail' photo.pk %}" class="photo-card-link">
+    <a href="{% if photo.slug %}{% url 'photo_detail_slug' photo.slug %}{% else %}{% url 'photo_detail' photo.pk %}{% endif %}" class="photo-card-link">
             <div class="photo-card">
                 <h2>{{ photo.title|truncate_title }}</h2>
                 <img src="{{ photo.image.url }}" alt="{{ photo.title }}">
-                <p>{{ photo.description|truncatechars:20}}</p>
-                <p class="photo-meta">
-                    Загружено: {{ photo.uploaded_at|time_since_upload }}
-                    {% if photo.uploaded_by %}
-                        пользователем {{ photo.uploaded_by.username }}
-                    {% else %}
-                        анонимно
+                <div class="photo-card-content">
+                    <p class="photo-card-description">{{ photo.description|truncatechars:50 }}</p>
+                    <p class="photo-meta">
+                        {% if photo.category %}
+                            <span class="category-badge">{{ photo.category.name }}</span>
+                        {% endif %}
+                        <span class="category-badge">{{ photo.get_category_type_display }}</span>
+                        <br>
+                        Загружено: {{ photo.uploaded_at|time_since_upload }}
+                        {% if photo.uploaded_by %}
+                            пользователем {{ photo.uploaded_by.username }}
+                        {% else %}
+                            анонимно
+                        {% endif %}
+                    </p>
+                    {% if user.is_authenticated and photo.uploaded_by == user %}
+                    <div class="photo-actions">
+                        <a href="{% url 'edit_photo' photo.slug %}" class="edit-btn">Редактировать</a>
+                        <a href="{% url 'delete_photo' photo.slug %}" class="delete-btn">Удалить</a>
+                    </div>
                     {% endif %}
-                </p>
+                </div>
             </div>
         </a>
     {% empty %}
         <p>Нет доступных фотографий.</p>
     {% endfor %}
 </div>
+
+<script>
+    function filterByYear(year) {
+        if (year) {
+            window.location.href = "{% url 'photos_by_year' 0 %}".replace('0', year);
+        } else {
+            window.location.href = "{% url 'photo_list' %}";
+        }
+    }
+    
+    function filterByCategory(categorySlug) {
+        if (categorySlug) {
+            window.location.href = "{% url 'photos_by_category' 'placeholder' %}".replace('placeholder', categorySlug);
+        } else {
+            window.location.href = "{% url 'photo_list' %}";
+        }
+    }
+    
+    function sortPhotos(sortOption) {
+        // Get current URL
+        let url = new URL(window.location.href);
+        // Set or update the sort parameter
+        url.searchParams.set('sort', sortOption);
+        // Navigate to the new URL
+        window.location.href = url.toString();
+    }
+    
+    // Set the current year in the dropdown if we're on a year page
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if we're on a year page
+        const pathParts = window.location.pathname.split('/');
+        if (pathParts.includes('year')) {
+            const yearIndex = pathParts.indexOf('year') + 1;
+            if (yearIndex < pathParts.length) {
+                const year = pathParts[yearIndex];
+                document.getElementById('year-filter').value = year;
+            }
+        }
+    });
+</script>
 {% endblock %}
