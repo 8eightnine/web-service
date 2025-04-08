@@ -383,7 +383,7 @@ def delete_photo(request, slug):
 ## 4. Обновление URL-маршрутов
 
 Я добавил новые URL-маршруты для работы с тегами и статистикой:
-``````
+```python
 
 urlpatterns = [
     # Существующие маршруты...
@@ -391,7 +391,6 @@ urlpatterns = [
     path('tags/', views.tag_list, name='tag_list'),
     path('stats/', views.stats_view, name='stats'),
 ]
-
 ``````
 Эти маршруты позволяют:
 1. Просматривать фотографии с определенным тегом
@@ -403,7 +402,7 @@ urlpatterns = [
 ### 5.1. Обновление photo_detail.html
 
 Я обновил шаблон `photo_detail.html` для отображения тегов, комментариев и связанных фотографий:
-``````
+```html
 
 <!-- Секция тегов -->
 <div class="photo-tags">
