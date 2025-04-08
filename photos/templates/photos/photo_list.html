@@ -31,6 +31,19 @@
             </div>
         </div>
         
+        <!-- New tag filter -->
+        <div class="filter-group">
+            <h3>Фильтр по тегам</h3>
+            <div class="filter-dropdown">
+                <select id="tag-filter" onchange="filterByTag(this.value)">
+                    <option value="">Все теги</option>
+                    {% for tag in popular_tags %}
+                        <option value="{{ tag.slug }}" {% if current_tag == tag.slug %}selected{% endif %}>{{ tag.name }} ({{ tag.photo_count }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
         <div class="filter-group">
             <h3>Сортировка</h3>
             <div class="filter-dropdown">
@@ -43,9 +56,34 @@
             </div>
         </div>
     </div>
+    
+    <!-- Statistics section -->
+    <div class="stats-section">
+        <h3>Статистика:</h3>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <span class="stat-label">Всего фотографий:</span>
+                <span class="stat-value">{{ stats.total_photos }}</span>
+            </div>
+            {% if stats.latest_photo %}
+            <div class="stat-item">
+                <span class="stat-label">Последняя загрузка:</span>
+                <span class="stat-value">{{ stats.latest_photo.title|truncatechars:20 }} ({{ stats.latest_photo.uploaded_at|date:"d.m.Y" }})</span>
+            </div>
+            {% endif %}
+            {% if stats.avg_photos_per_category %}
+            <div class="stat-item">
+                <span class="stat-label">Среднее кол-во фото в категории:</span>
+                <span class="stat-value">{{ stats.avg_photos_per_category|floatformat:1 }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
 <a href="{% url 'upload_photo' %}" class="add-button">Добавить новую фотографию</a>
+<a href="{% url 'tag_list' %}" class="view-tags-button">Просмотр всех тегов</a>
+<a href="{% url 'stats' %}" class="view-stats-button">Подробная статистика</a>
 
 <div class="photo-grid">
     {% for photo in photos %}
@@ -68,6 +106,20 @@
                             анонимно
                         {% endif %}
                     </p>
+                    
+                    <!-- Display tags -->
+                    {% if photo.tags.exists %}
+                    <div class="photo-tags">
+                        <span class="tags-label">Теги:</span>
+                        {% for tag in photo.tags.all|slice:":3" %}
+                            <span class="tag-badge">{{ tag.name }}</span>
+                        {% endfor %}
+                        {% if photo.tags.count > 3 %}
+                            <span class="more-tags">+{{ photo.tags.count|add:"-3" }}</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
                     {% if user.is_authenticated and photo.uploaded_by == user %}
                     <div class="photo-actions">
                         <a href="{% url 'edit_photo' photo.slug %}" class="edit-btn">Редактировать</a>
@@ -94,6 +146,14 @@
     function filterByCategory(categorySlug) {
         if (categorySlug) {
             window.location.href = "{% url 'photos_by_category' 'placeholder' %}".replace('placeholder', categorySlug);
+        } else {
+            window.location.href = "{% url 'photo_list' %}";
+        }
+    }
+    
+    function filterByTag(tagSlug) {
+        if (tagSlug) {
+            window.location.href = "{% url 'photos_by_tag' 'placeholder' %}".replace('placeholder', tagSlug);
         } else {
             window.location.href = "{% url 'photo_list' %}";
         }
