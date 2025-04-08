@@ -5,7 +5,7 @@ from django.shortcuts import render, get_object_or_404, redirect, Http404
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.utils.text import slugify
-from .models import Photo, Category, PhotoCategory, Tag
+from .models import Photo, Category, PhotoCategory
 from .forms import CommentForm, PhotoForm, CategoryForm
 from django.db.models import Count, Sum, Avg, Max, Min
 
@@ -22,7 +22,10 @@ def upload_photo(request):
             if request.user.is_authenticated:
                 photo.uploaded_by = request.user
             photo.save()
-            # Change this line to use the correct URL name for slug-based detail view
+
+            # Tags are handled in the form's save method
+            form.save_m2m()  # This is needed for TaggableManager
+
             return redirect('photo_detail_slug', slug=photo.slug)
     else:
         form = PhotoForm()
@@ -107,7 +110,7 @@ def photo_list(request):
         photos = photos.filter(category__slug=category_filter)
 
     if tag_filter:
-        photos = photos.filter(tags__slug=tag_filter)
+        photos = photos.filter(tags__name=tag_filter)
 
     # Apply sorting
     photos = photos.order_by(sort_by)
@@ -120,9 +123,8 @@ def photo_list(request):
     # Get all categories for filter
     categories = Category.objects.all()
 
-    # Get popular tags
-    popular_tags = Tag.objects.annotate(
-        photo_count=Count('photos')).order_by('-photo_count')[:10]
+    # Get popular tags using taggit
+    popular_tags = Photo.tags.most_common()[:10]
 
     # Get stats
     stats = {
@@ -199,52 +201,38 @@ def photo_detail(request, pk=None, slug=None):
         })
 
 
-def upload_photo(request):
-    if request.method == 'POST':
-        form = PhotoForm(request.POST, request.FILES)
-        if form.is_valid():
-            photo = form.save(commit=False)
-            if request.user.is_authenticated:
-                photo.uploaded_by = request.user
-            photo.save()
-
-            # Handle tags
-            tags = form.cleaned_data.get('tags')
-            if tags:
-                for tag_name in tags.split(','):
-                    tag_name = tag_name.strip()
-                    if tag_name:
-                        tag, created = Tag.objects.get_or_create(
-                            name=tag_name,
-                            defaults={'slug': slugify(tag_name)})
-                        photo.tags.add(tag)
-
-            return redirect('photo_detail_slug', slug=photo.slug)
-    else:
-        form = PhotoForm()
-    return render(request, 'photos/upload_photo.html', {'form': form})
-
-
 def photos_by_tag(request, tag_slug):
-    tag = get_object_or_404(Tag, slug=tag_slug)
-    photos = Photo.objects.filter(tags=tag)
+    # With taggit, we use the tag name directly
+    photos = Photo.objects.filter(tags__slug=tag_slug).distinct()
+    tag_name = tag_slug.replace('-', ' ')  # Simple conversion for display
 
     return render(request, 'photos/photos_by_tag.html', {
         'photos': photos,
-        'tag': tag
+        'tag': {
+            'name': tag_name,
+            'slug': tag_slug
+        }
     })
 
 
 def tag_list(request):
-    # Use aggregation to get tags with photo counts
+    # Use taggit's TaggableManager to get tags with counts
+    from taggit.models import Tag
+    from django.db.models import Count
+
     tags = Tag.objects.annotate(
-        photo_count=Count('photos')).order_by('-photo_count')
+        photo_count=Count('taggit_taggeditem_items')).order_by('-photo_count')
 
     # Get stats using aggregation
     stats = {
-        'total_tags': tags.count(),
-        'max_photos': tags.aggregate(Max('photo_count'))['photo_count__max'],
-        'avg_photos': tags.aggregate(Avg('photo_count'))['photo_count__avg'],
+        'total_tags':
+        tags.count(),
+        'max_photos':
+        tags.aggregate(Max('photo_count'))['photo_count__max']
+        if tags.exists() else 0,
+        'avg_photos':
+        tags.aggregate(Avg('photo_count'))['photo_count__avg']
+        if tags.exists() else 0,
     }
 
     return render(request, 'photos/tag_list.html', {

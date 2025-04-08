@@ -38,7 +38,9 @@
                 <select id="tag-filter" onchange="filterByTag(this.value)">
                     <option value="">Все теги</option>
                     {% for tag in popular_tags %}
-                        <option value="{{ tag.slug }}" {% if current_tag == tag.slug %}selected{% endif %}>{{ tag.name }} ({{ tag.photo_count }})</option>
+                        <option value="{{ tag.slug }}" {% if current_tag == tag.slug %}selected{% endif %}>
+                            {{ tag.name }} ({{ tag.num_times }})
+                        </option>
                     {% endfor %}
                 </select>
             </div>

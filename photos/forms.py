@@ -1,5 +1,5 @@
 from django import forms
-from .models import Photo, Category, Comment, Tag
+from .models import Photo, Category, Comment
 
 
 class PhotoForm(forms.ModelForm):
@@ -21,6 +21,28 @@ class PhotoForm(forms.ModelForm):
             self.initial['tags'] = ', '.join(
                 [tag.name for tag in self.instance.tags.all()])
 
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+
+        if commit:
+            instance.save()
+
+        # Handle tags with taggit
+        if 'tags' in self.cleaned_data:
+            # Clear existing tags
+            instance.tags.clear()
+
+            # Add new tags
+            tag_string = self.cleaned_data['tags']
+            if tag_string:
+                tag_list = [
+                    tag.strip() for tag in tag_string.split(',')
+                    if tag.strip()
+                ]
+                instance.tags.add(*tag_list)
+
+        return instance
+
 
 class CategoryForm(forms.ModelForm):
 
@@ -41,10 +63,3 @@ class CommentForm(forms.ModelForm):
                 'placeholder': 'Введите ваш комментарий'
             })
         }
-
-
-class TagForm(forms.ModelForm):
-
-    class Meta:
-        model = Tag
-        fields = ['name']

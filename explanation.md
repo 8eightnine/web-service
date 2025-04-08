@@ -9,31 +9,23 @@
 
 ## 2. Добавление новых моделей
 
-### 2.1. Добавление модели Tag (Тег)
+### 2.1. Интеграция django-taggit для системы тегов
 
-Для реализации системы тегов я создал новую модель `Tag`, которая позволяет классифицировать фотографии по различным признакам:
+Для реализации системы тегов я использовал библиотеку `django-taggit`, которая предоставляет готовую функциональность для работы с тегами:
 
 ```python
-class Tag(models.Model):
-    name = models.CharField(max_length=50, unique=True)
-    slug = models.SlugField(max_length=50, unique=True)
-    
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
-        super().save(*args, **kwargs)
-    
-    def __str__(self):
-        return self.name
-    
-    def get_photo_count(self):
-        return self.photos.count()
+from taggit.managers import TaggableManager
+
+class Photo(models.Model):
+    # Существующие поля...
+    tags = TaggableManager(blank=True)
 ```
 
-Эта модель содержит:
-- `name` - название тега
-- `slug` - URL-дружественное представление названия для использования в URL
-- Метод `get_photo_count()` - использует метод `count()` для подсчета количества фотографий с данным тегом
+Преимущества использования `django-taggit`:
+- Готовая модель `Tag` с оптимизированной структурой
+- Встроенные методы для добавления, удаления и фильтрации по тегам
+- Автоматическое создание слагов для тегов
+- Метод `most_common()` для получения наиболее популярных тегов
 
 ### 2.2. Добавление модели Comment (Комментарий)
 
@@ -61,12 +53,12 @@ class Comment(models.Model):
 
 ### 2.3. Обновление модели Photo
 
-Я обновил модель `Photo`, добавив связь с моделью `Tag`:
+Я обновил модель `Photo`, добавив связь с тегами через `TaggableManager`:
 
 ```python
 class Photo(models.Model):
     # Существующие поля...
-    tags = models.ManyToManyField(Tag, related_name='photos', blank=True)
+    tags = TaggableManager(blank=True)
     
     # Добавил новые методы
     def get_previous_photo(self):
@@ -76,20 +68,20 @@ class Photo(models.Model):
         return Photo.objects.filter(uploaded_at__gt=self.uploaded_at).order_by('uploaded_at').first()
     
     def get_related_photos(self):
-        # Get photos with the same tags using Q objects
+        # Get photos with the same tags using Q objects and taggit
         if not self.tags.exists():
             return Photo.objects.none()
         
-        tag_ids = self.tags.values_list('id', flat=True)
+        tag_list = self.tags.values_list('name', flat=True)
         return Photo.objects.filter(
-            Q(tags__id__in=tag_ids) & ~Q(id=self.id)
+            Q(tags__name__in=tag_list) & ~Q(id=self.id)
         ).distinct().annotate(
-            common_tags=Count('tags', filter=Q(tags__id__in=tag_ids))
+            common_tags=Count('tags', filter=Q(tags__name__in=tag_list))
         ).order_by('-common_tags')[:5]
 ```
 
 Здесь я:
-1. Добавил поле `tags` - связь "многие ко многим" с моделью `Tag`
+1. Добавил поле `tags` - используя `TaggableManager` из django-taggit
 2. Добавил метод `get_previous_photo()` - использует метод `first()` для получения предыдущей фотографии
 3. Добавил метод `get_next_photo()` - использует метод `first()` для получения следующей фотографии
 4. Добавил метод `get_related_photos()` - использует класс `Q` для сложных запросов и метод `annotate()` с функцией `Count()` для подсчета общих тегов
@@ -103,13 +95,13 @@ class PhotoManager(models.Manager):
     # Существующие методы...
     
     def get_popular_tags(self, limit=10):
-        return Tag.objects.annotate(photo_count=Count('photos')).order_by('-photo_count')[:limit]
+        return Photo.tags.most_common()[:limit]
     
     def get_photos_with_tags_count(self):
         return self.annotate(tags_count=Count('tags'))
 ```
 
-Эти методы используют агрегирующую функцию `Count()` для подсчета количества фотографий для каждого тега и количества тегов для каждой фотографии.
+Эти методы используют функциональность django-taggit для получения популярных тегов и агрегирующую функцию `Count()` для подсчета количества тегов для каждой фотографии.
 
 ## 3. Обновление представлений (views)
 
@@ -130,7 +122,7 @@ def photo_list(request):
         photos = photos.filter(category__slug=category_filter)
     
     if tag_filter:
-        photos = photos.filter(tags__slug=tag_filter)
+        photos = photos.filter(tags__name=tag_filter)
     
     # Apply sorting
     photos = photos.order_by(sort_by)
@@ -143,8 +135,8 @@ def photo_list(request):
     # Get all categories for filter
     categories = Category.objects.all()
     
-    # Get popular tags
-    popular_tags = Tag.objects.annotate(photo_count=Count('photos')).order_by('-photo_count')[:10]
+    # Get popular tags using taggit
+    popular_tags = Photo.tags.most_common()[:10]
     
     # Get stats
     stats = {
@@ -169,8 +161,8 @@ def photo_list(request):
 ```
 
 В этом представлении я:
-1. Добавил фильтрацию по тегам
-2. Добавил получение популярных тегов с использованием `annotate()` и `Count()`
+1. Добавил фильтрацию по тегам с использованием django-taggit
+2. Добавил получение популярных тегов с использованием метода `most_common()`
 3. Добавил статистику с использованием методов `count()`, `latest()`, `earliest()` и агрегирующей функции `Avg()`
 
 ### 3.2. Обновление photo_detail
@@ -236,25 +228,29 @@ def photo_detail(request, pk=None, slug=None):
 
 ```python
 def photos_by_tag(request, tag_slug):
-    tag = get_object_or_404(Tag, slug=tag_slug)
-    photos = Photo.objects.filter(tags=tag)
-    
+    # With taggit, we use the tag slug directly
+    photos = Photo.objects.filter(tags__slug=tag_slug).distinct()
+    tag_name = tag_slug.replace('-', ' ')  # Simple conversion for display
+
     return render(request, 'photos/photos_by_tag.html', {
         'photos': photos,
-        'tag': tag
+        'tag': {'name': tag_name, 'slug': tag_slug}
     })
 
 def tag_list(request):
-    # Use aggregation to get tags with photo counts
+    # Use taggit's TaggableManager to get tags with counts
+    from taggit.models import Tag
+    from django.db.models import Count
+    
     tags = Tag.objects.annotate(
-        photo_count=Count('photos')
+        photo_count=Count('taggit_taggeditem_items')
     ).order_by('-photo_count')
     
     # Get stats using aggregation
     stats = {
         'total_tags': tags.count(),
-        'max_photos': tags.aggregate(Max('photo_count'))['photo_count__max'],
-        'avg_photos': tags.aggregate(Avg('photo_count'))['photo_count__avg'],
+        'max_photos': tags.aggregate(Max('photo_count'))['photo_count__max'] if tags.exists() else 0,
+        'avg_photos': tags.aggregate(Avg('photo_count'))['photo_count__avg'] if tags.exists() else 0,
     }
     
     return render(request, 'photos/tag_list.html', {
@@ -323,7 +319,7 @@ def stats_view(request):
 
 Я также добавил недостающие представления `edit_photo` и `delete_photo`:
 
-````python
+```python
 @login_required
 def edit_photo(request, slug):
     photo = get_object_or_404(Photo, slug=slug)
@@ -335,22 +331,8 @@ def edit_photo(request, slug):
     if request.method == 'POST':
         form = PhotoForm(request.POST, request.FILES, instance=photo)
         if form.is_valid():
-            updated_photo = form.save()
-            
-            # Handle tags
-            photo.tags.clear()  # Remove existing tags
-            tags = form.cleaned_data.get('tags')
-            if tags:
-                for tag_name in tags.split(','):
-                    tag_name = tag_name.strip()
-                    if tag_name:
-                        tag, created = Tag.objects.get_or_create(
-                            name=tag_name,
-                            defaults={'slug': slugify(tag_name)}
-                        )
-                        photo.tags.add(tag)
-            
-            return redirect('photo_detail_slug', slug=updated_photo.slug)
+            form.save()
+            return redirect('photo_detail_slug', slug=photo.slug)
     else:
         form = PhotoForm(instance=photo)
     
@@ -372,26 +354,26 @@ def delete_photo(request, slug):
         return redirect('photo_list')
         
     return render(request, 'photos/delete_photo.html', {'photo': photo})
+```
 
-``````
 В этих представлениях я:
 1. Использовал декоратор `@login_required` для ограничения доступа только авторизованным пользователям
 2. Проверял, является ли пользователь владельцем фотографии
-3. В `edit_photo` добавил обработку тегов при обновлении фотографии
+3. В `edit_photo` использовал форму `PhotoForm`, которая автоматически обрабатывает теги с помощью django-taggit
 4. В `delete_photo` добавил подтверждение удаления фотографии
 
 ## 4. Обновление URL-маршрутов
 
 Я добавил новые URL-маршруты для работы с тегами и статистикой:
 ```python
-
 urlpatterns = [
     # Существующие маршруты...
     path('tag/<slug:tag_slug>/', views.photos_by_tag, name='photos_by_tag'),
     path('tags/', views.tag_list, name='tag_list'),
     path('stats/', views.stats_view, name='stats'),
 ]
-``````
+```
+
 Эти маршруты позволяют:
 1. Просматривать фотографии с определенным тегом
 2. Просматривать список всех тегов
@@ -403,7 +385,6 @@ urlpatterns = [
 
 Я обновил шаблон `photo_detail.html` для отображения тегов, комментариев и связанных фотографий:
 ```html
-
 <!-- Секция тегов -->
 <div class="photo-tags">
     <h3>Теги:</h3>
@@ -468,7 +449,7 @@ urlpatterns = [
         {% endfor %}
     </div>
 </div>
-``````
+```
 
 В этом шаблоне я:
 1. Использовал метод `exists()` для проверки наличия тегов
@@ -488,7 +469,9 @@ urlpatterns = [
         <select id="tag-filter" onchange="filterByTag(this.value)">
             <option value="">Все теги</option>
             {% for tag in popular_tags %}
-                <option value="{{ tag.slug }}" {% if current_tag == tag.slug %}selected{% endif %}>{{ tag.name }} ({{ tag.photo_count }})</option>
+                <option value="{{ tag.slug }}" {% if current_tag == tag.slug %}selected{% endif %}>
+                    {{ tag.name }} ({{ tag.num_times }})
+                </option>
             {% endfor %}
         </select>
     </div>
@@ -532,9 +515,9 @@ urlpatterns = [
 ```
 
 В этом шаблоне я:
-1. Добавил выпадающий список для фильтрации по тегам
+1. Добавил выпадающий список для фильтрации по тегам с использованием django-taggit
 2. Добавил секцию статистики
-3. Добавил отображение тегов для каждой фотографии с использованием метода `exists()` и `count()`
+3. Добавил отображение тегов для каждой фотографии с использованием методов `exists()` и `count()`
 
 ### 5.3. Создание новых шаблонов
 
@@ -602,7 +585,7 @@ urlpatterns = [
 
 ## 6. Создание форм
 
-Я создал новые формы для работы с тегами и комментариями:
+Я обновил формы для работы с тегами и комментариями:
 
 ```python
 class PhotoForm(forms.ModelForm):
@@ -622,6 +605,25 @@ class PhotoForm(forms.ModelForm):
         # If we're editing an existing photo, populate the tags field
         if self.instance.pk:
             self.initial['tags'] = ', '.join([tag.name for tag in self.instance.tags.all()])
+            
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        
+        if commit:
+            instance.save()
+            
+        # Handle tags with taggit
+        if 'tags' in self.cleaned_data:
+            # Clear existing tags
+            instance.tags.clear()
+            
+            # Add new tags
+            tag_string = self.cleaned_data['tags']
+            if tag_string:
+                tag_list = [tag.strip() for tag in tag_string.split(',') if tag.strip()]
+                instance.tags.add(*tag_list)
+                
+        return instance
 
 class CommentForm(forms.ModelForm):
     class Meta:
@@ -630,22 +632,17 @@ class CommentForm(forms.ModelForm):
         widgets = {
             'text': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Введите ваш комментарий'})
         }
-
-class TagForm(forms.ModelForm):
-    class Meta:
-        model = Tag
-        fields = ['name']
 ```
 
 В этих формах я:
 1. Добавил поле `tags` в форму `PhotoForm` для ввода тегов через запятую
 2. Добавил инициализацию поля `tags` при редактировании существующей фотографии
-3. Создал форму `CommentForm` для добавления комментариев
-4. Создал форму `TagForm` для работы с тегами
+3. Переопределил метод `save()` для обработки тегов с использованием django-taggit
+4. Создал форму `CommentForm` для добавления комментариев
 
 ## 7. Создание миграций
 
-Для создания необходимых таблиц в базе данных нужно создать и применить миграции:
+Для создания необходимых таблиц в базе данных я создал и применил миграции:
 
 ```bash
 python manage.py makemigrations
@@ -653,20 +650,24 @@ python manage.py migrate
 ```
 
 Эти команды создадут следующие таблицы:
-1. `photos_tag` - для хранения тегов
-2. `photos_photo_tags` - промежуточная таблица для связи "многие ко многим" между фотографиями и тегами
+1. `taggit_tag` - для хранения тегов (из библиотеки django-taggit)
+2. `taggit_taggeditem` - промежуточная таблица для связи "многие ко многим" между фотографиями и тегами
 3. `photos_comment` - для хранения комментариев
 
 ## Заключение
 
 В результате выполненных действий я:
 
-1. Добавил новые модели `Tag` и `Comment` с соответствующими связями:
-   - Связь "многие ко многим" между `Photo` и `Tag`
+1. Интегрировал библиотеку django-taggit для работы с тегами вместо создания собственной модели:
+   - Использовал `TaggableManager` для связи фотографий с тегами
+   - Использовал встроенные методы django-taggit для добавления и фильтрации тегов
+   - Использовал метод `most_common()` для получения популярных тегов
+
+2. Добавил модель `Comment` с соответствующими связями:
    - Связь "многие к одному" между `Comment` и `Photo`
    - Связь "многие к одному" между `Comment` и `User`
 
-2. Использовал различные методы работы с базой данных:
+3. Использовал различные методы работы с базой данных:
    - `exists()` для проверки наличия записей
    - `count()` для подсчета количества записей
    - `get_previous_by_` и `get_next_by_` для навигации между записями
@@ -677,8 +678,8 @@ python manage.py migrate
    - Агрегирующие функции `Count()`, `Avg()`, `Max()`, `Min()`
    - Группировку записей с помощью `values()` и `annotate()`
 
-3. Обновил представления и шаблоны для работы с тегами и комментариями, а также для отображения статистики.
+4. Обновил представления и шаблоны для работы с тегами и комментариями, а также для отображения статистики.
 
-4. Добавил новые формы для работы с тегами и комментариями.
+5. Добавил новые формы для работы с тегами и комментариями.
 
-Все эти изменения позволили реализовать систему тегов и комментариев для фотографий, а также добавить статистику и улучшить навигацию по сайту.
+Все эти изменения позволили реализовать систему тегов и комментариев для фотографий, а также добавить статистику и улучшить навигацию по сайту, при этом используя готовую библиотеку django-taggit для более эффективной работы с тегами.

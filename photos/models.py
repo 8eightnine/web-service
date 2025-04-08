@@ -4,6 +4,7 @@ from django.utils.text import slugify
 from enum import Enum
 from django.db.models import Count, F, Q, Value, ExpressionWrapper
 from django.db.models.functions import ExtractYear
+from taggit.managers import TaggableManager
 
 
 class PhotoCategory(Enum):
@@ -30,8 +31,9 @@ class PhotoManager(models.Manager):
         return self.filter(uploaded_by=user)
 
     def get_popular_tags(self, limit=10):
-        return Tag.objects.annotate(
-            photo_count=Count('photos')).order_by('-photo_count')[:limit]
+        # Updated to work with taggit
+        from django.db.models import Count
+        return Photo.tags.most_common()[:limit]
 
     def get_photos_with_tags_count(self):
         return self.annotate(tags_count=Count('tags'))
@@ -49,22 +51,6 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
-
-
-class Tag(models.Model):
-    name = models.CharField(max_length=50, unique=True)
-    slug = models.SlugField(max_length=50, unique=True)
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.name
-
-    def get_photo_count(self):
-        return self.photos.count()
 
 
 class Photo(models.Model):
@@ -85,7 +71,8 @@ class Photo(models.Model):
     category_type = models.CharField(max_length=20,
                                      choices=PhotoCategory.choices(),
                                      default=PhotoCategory.OTHER.name)
-    tags = models.ManyToManyField(Tag, related_name='photos', blank=True)
+    # Replace ManyToManyField with TaggableManager
+    tags = TaggableManager(blank=True)
 
     objects = models.Manager()  # Default manager
     custom = PhotoManager()  # Custom manager
@@ -127,15 +114,15 @@ class Photo(models.Model):
         return None
 
     def get_related_photos(self):
-        # Get photos with the same tags using Q objects
+        # Get photos with the same tags using taggit
         if not self.tags.exists():
             return Photo.objects.none()
 
-        tag_ids = self.tags.values_list('id', flat=True)
-        return Photo.objects.filter(Q(
-            tags__id__in=tag_ids) & ~Q(id=self.id)).distinct().annotate(
+        tag_list = self.tags.values_list('name', flat=True)
+        return Photo.objects.filter(tags__name__in=tag_list).exclude(
+            id=self.id).distinct().annotate(
                 common_tags=Count('tags', filter=Q(
-                    tags__id__in=tag_ids))).order_by('-common_tags')[:5]
+                    tags__name__in=tag_list))).order_by('-common_tags')[:5]
 
     def __str__(self):
         return self.title
