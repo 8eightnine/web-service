@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}Статистика{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Статистика фотографий</h1>
+    
+    <div class="stats-card">
+        <h2>Общая статистика</h2>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <span class="stat-label">Всего фотографий:</span>
+                <span class="stat-value">{{ total_photos }}</span>
+            </div>
+            
+            {% if latest_photo %}
+            <div class="stat-item">
+                <span class="stat-label">Последняя загрузка:</span>
+                <span class="stat-value">
+                    <a href="{% url 'photo_detail_slug' latest_photo.slug %}">
+                        {{ latest_photo.title|truncatechars:20 }} ({{ latest_photo.uploaded_at|date:"d.m.Y" }})
+                    </a>
+                </span>
+            </div>
+            {% endif %}
+            
+            {% if earliest_photo %}
+            <div class="stat-item">
+                <span class="stat-label">Самая ранняя загрузка:</span>
+                <span class="stat-value">
+                    <a href="{% url 'photo_detail_slug' earliest_photo.slug %}">
+                        {{ earliest_photo.title|truncatechars:20 }} ({{ earliest_photo.uploaded_at|date:"d.m.Y" }})
+                    </a>
+                </span>
+            </div>
+            {% endif %}
+            
+            {% if first_photo %}
+            <div class="stat-item">
+                <span class="stat-label">Первая фотография (по ID):</span>
+                <span class="stat-value">
+                    <a href="{% url 'photo_detail_slug' first_photo.slug %}">
+                        {{ first_photo.title|truncatechars:20 }} (ID: {{ first_photo.id }})
+                    </a>
+                </span>
+            </div>
+            {% endif %}
+            
+            {% if last_photo %}
+            <div class="stat-item">
+                <span class="stat-label">Последняя фотография (по ID):</span>
+                <span class="stat-value">
+                    <a href="{% url 'photo_detail_slug' last_photo.slug %}">
+                        {{ last_photo.title|truncatechars:20 }} (ID: {{ last_photo.id }})
+                    </a>
+                </span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="stats-card">
+        <h2>Категории</h2>
+        <div class="categories-stats">
+            <table class="stats-table">
+                <thead>
+                    <tr>
+                        <th>Категория</th>
+                        <th>Количество фотографий</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category in categories_with_counts %}
+                    <tr>
+                        <td>{{ category.name }}</td>
+                        <td>{{ category.photo_count }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2">Нет категорий</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="stats-card">
+        <h2>Фотографии по годам</h2>
+        <div class="year-stats">
+            <table class="stats-table">
+                <thead>
+                    <tr>
+                        <th>Год</th>
+                        <th>Количество фотографий</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for year_data in photos_per_year %}
+                    <tr>
+                        <td>{{ year_data.year }}</td>
+                        <td>{{ year_data.count }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2">Нет данных</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="stats-card">
+        <h2>Самые активные пользователи</h2>
+        <div class="users-stats">
+            <table class="stats-table">
+                <thead>
+                    <tr>
+                        <th>Пользователь</th>
+                        <th>Количество фотографий</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in active_users %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.photo_count }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2">Нет данных</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="back-link">
+        <a href="{% url 'photo_list' %}">Назад к списку фотографий</a>
+    </div>
+</div>
+{% endblock %}

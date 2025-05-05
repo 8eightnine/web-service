@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load photo_filters %}
+
+{% block title %}Фотографии с тегом "{{ tag.name }}"{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Фотографии с тегом "{{ tag.name }}"</h1>
+    
+    <div class="tag-info">
+        <p>Всего фотографий с этим тегом: {{ photos.count }}</p>
+    </div>
+    
+    <div class="photo-grid">
+        {% for photo in photos %}
+        <a href="{% url 'photo_detail_slug' photo.slug %}" class="photo-card-link">
+            <div class="photo-card">
+                <h2>{{ photo.title|truncate_title }}</h2>
+                <img src="{{ photo.image.url }}" alt="{{ photo.title }}">
+                <div class="photo-card-content">
+                    <p class="photo-card-description">{{ photo.description|truncatechars:50 }}</p>
+                    <p class="photo-meta">
+                        {% if photo.category %}
+                            <span class="category-badge">{{ photo.category.name }}</span>
+                        {% endif %}
+                        <span class="category-badge">{{ photo.get_category_type_display }}</span>
+                        <br>
+                        Загружено: {{ photo.uploaded_at|time_since_upload }}
+                        {% if photo.uploaded_by %}
+                            пользователем {{ photo.uploaded_by.username }}
+                        {% else %}
+                            анонимно
+                        {% endif %}
+                    </p>
+                    
+                    <!-- Display tags -->
+                    <div class="photo-tags">
+                        <span class="tags-label">Теги:</span>
+                        {% for tag in photo.tags.all|slice:":3" %}
+                            <span class="tag-badge {% if tag.slug == tag.slug %}active-tag{% endif %}">{{ tag.name }}</span>
+                        {% endfor %}
+                        {% if photo.tags.count > 3 %}
+                            <span class="more-tags">+{{ photo.tags.count|add:"-3" }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </a>
+        {% empty %}
+            <p>Нет доступных фотографий с этим тегом.</p>
+        {% endfor %}
+    </div>
+    
+    <div class="back-link">
+        <a href="{% url 'tag_list' %}">Назад к списку тегов</a>
+        <a href="{% url 'photo_list' %}">Назад к списку фотографий</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Теги{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Все теги</h1>
+    
+    <div class="stats-section">
+        <h3>Статистика тегов:</h3>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <span class="stat-label">Всего тегов:</span>
+                <span class="stat-value">{{ stats.total_tags }}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Максимум фото с одним тегом:</span>
+                <span class="stat-value">{{ stats.max_photos }}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Среднее кол-во фото на тег:</span>
+                <span class="stat-value">{{ stats.avg_photos|floatformat:1 }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tag-cloud">
+        {% for tag in tags %}
+            <a href="{% url 'photos_by_tag' tag.slug %}" class="tag-item" style="font-size: {{ tag.photo_count|add:10 }}px;">
+                {{ tag.name }} ({{ tag.photo_count }})
+            </a>
+        {% empty %}
+            <p>Нет доступных тегов.</p>
+        {% endfor %}
+    </div>
+    
+    <div class="back-link">
+        <a href="{% url 'photo_list' %}">Назад к списку фотографий</a>
+    </div>
+</div>
+{% endblock %}
