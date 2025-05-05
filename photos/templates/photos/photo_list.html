@@ -13,7 +13,7 @@
                 <select id="year-filter" onchange="filterByYear(this.value)">
                     <option value="">Все годы</option>
                     {% for year in years %}
-                        <option value="{{ year }}" {% if current_year == year %}selected{% endif %}>{{ year }}</option>
+                        <option value="{{ year }}">{{ year }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -47,18 +47,6 @@
         </div>
         
         <div class="filter-group">
-            <h3>Фильтр по тегам</h3>
-            <div class="filter-dropdown">
-                <select id="tag-filter" onchange="filterByTag(this.value)">
-                    <option value="">Все теги</option>
-                    {% for tag in tags %}
-                        <option value="{{ tag.slug }}" {% if current_tag == tag.slug %}selected{% endif %}>{{ tag.name }} ({{ tag.photo_count }})</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
-        
-        <div class="filter-group">
             <h3>Сортировка</h3>
             <div class="filter-dropdown">
                 <select id="sort-filter" onchange="sortPhotos(this.value)">
@@ -66,8 +54,6 @@
                     <option value="-title" {% if current_sort == '-title' %}selected{% endif %}>По названию (Я-А)</option>
                     <option value="-uploaded_at" {% if current_sort == '-uploaded_at' %}selected{% endif %}>Сначала новые</option>
                     <option value="uploaded_at" {% if current_sort == 'uploaded_at' %}selected{% endif %}>Сначала старые</option>
-                    <option value="-views" {% if current_sort == '-views' %}selected{% endif %}>По популярности</option>
-                    <option value="-comment_count" {% if current_sort == '-comment_count' %}selected{% endif %}>По количеству комментариев</option>
                 </select>
             </div>
         </div>
@@ -97,28 +83,6 @@
     </div>
 </div>
 
-<div class="stats-container">
-    <h3>Статистика</h3>
-    <div class="stats-row">
-        <div class="stat-box">
-            <span class="stat-value">{{ total_photos }}</span>
-            <span class="stat-label">Всего фотографий</span>
-        </div>
-        <div class="stat-box">
-            <span class="stat-value">{{ total_users }}</span>
-            <span class="stat-label">Пользователей</span>
-        </div>
-        <div class="stat-box">
-            <span class="stat-value">{{ total_comments }}</span>
-            <span class="stat-label">Комментариев</span>
-        </div>
-        <div class="stat-box">
-            <span class="stat-value">{{ total_tags }}</span>
-            <span class="stat-label">Тегов</span>
-        </div>
-    </div>
-</div>
-
 <a href="{% url 'upload_photo' %}" class="add-button">Добавить новую фотографию</a>
 <a href="{% url 'tag_list' %}" class="view-tags-button">Просмотр всех тегов</a>
 <a href="{% url 'stats' %}" class="view-stats-button">Подробная статистика</a>
@@ -131,11 +95,6 @@
                 <img src="{{ photo.image.url }}" alt="{{ photo.title }}">
                 <div class="photo-card-content">
                     <p class="photo-card-description">{{ photo.description|truncatechars:50 }}</p>
-                    <div class="photo-tags">
-                        {% for tag in photo.tags.all %}
-                            <span class="tag-badge">{{ tag.name }}</span>
-                        {% endfor %}
-                    </div>
                     <p class="photo-meta">
                         {% if photo.category %}
                             <span class="category-badge">{{ photo.category.name }}</span>
@@ -148,8 +107,6 @@
                         {% else %}
                             анонимно
                         {% endif %}
-<<<<<<< HEAD
-=======
                     </p>
                     
                     <!-- Display tags -->
@@ -227,4 +184,3 @@
     });
 </script>
 {% endblock %}
->>>>>>> dc917a34d34833d6247a57b5e93f4030aaaadf46

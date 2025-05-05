@@ -22,14 +22,18 @@ def upload_photo(request):
             if request.user.is_authenticated:
                 photo.uploaded_by = request.user
             photo.save()
-
-            # Tags are handled in the form's save method
-            form.save_m2m()  # This is needed for TaggableManager
-
+            
+            # Process tags from the form
+            tags_text = form.cleaned_data.get('tags', '')
+            if tags_text:
+                tags_list = [tag.strip() for tag in tags_text.split(',') if tag.strip()]
+                photo.tags.add(*tags_list)
+                
             return redirect('photo_detail_slug', slug=photo.slug)
     else:
         form = PhotoForm()
     return render(request, 'photos/upload_photo.html', {'form': form})
+
 
 
 @login_required
@@ -44,14 +48,25 @@ def edit_photo(request, slug):
         form = PhotoForm(request.POST, request.FILES, instance=photo)
         if form.is_valid():
             form.save()
+            
+            # Process tags from the form
+            tags_text = form.cleaned_data.get('tags', '')
+            photo.tags.clear()
+            if tags_text:
+                tags_list = [tag.strip() for tag in tags_text.split(',') if tag.strip()]
+                photo.tags.add(*tags_list)
+                
             return redirect('photo_detail', slug=photo.slug)
     else:
-        form = PhotoForm(instance=photo)
+        # Pre-populate the tags field
+        initial_data = {'tags': ', '.join([tag.name for tag in photo.tags.all()])}
+        form = PhotoForm(instance=photo, initial=initial_data)
 
     return render(request, 'photos/edit_photo.html', {
         'form': form,
         'photo': photo
     })
+
 
 
 @login_required
