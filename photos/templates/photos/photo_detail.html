@@ -20,90 +20,55 @@
                 <p>{{ photo.description }}</p>
             </div>
             
-            <!-- Tags section -->
             <div class="photo-tags">
                 <h3>Теги:</h3>
-                <div class="tag-list">
-                    {% if photo.tags.exists %}
-                        {% for tag in photo.tags.all %}
-                            <a href="{% url 'photos_by_tag' tag.slug %}" class="tag-badge">{{ tag.name }}</a>
-                        {% endfor %}
-                    {% else %}
+                <div class="tags-container">
+                    {% for tag in photo.tags.all %}
+                        <a href="{% url 'photos_by_tag' tag.slug %}" class="tag-badge">{{ tag.name }}</a>
+                    {% empty %}
                         <p>Нет тегов</p>
-                    {% endif %}
+                    {% endfor %}
                 </div>
             </div>
             
-            <!-- Category info -->
+            {% if photo.category %}
             <div class="photo-category">
                 <h3>Категория:</h3>
-                {% if photo.category %}
-                    <a href="{% url 'photos_by_category' photo.category.slug %}" class="category-badge">{{ photo.category.name }}</a>
-                {% else %}
-                    <span>Без категории</span>
-                {% endif %}
-                <span class="category-type-badge">{{ photo.get_category_type_display }}</span>
+                <a href="{% url 'photos_by_category' photo.category.slug %}" class="category-badge">
+                    {{ photo.category.name }}
+                </a>
             </div>
-            
-            <!-- Navigation between photos -->
-            <div class="photo-navigation">
-                {% if prev_photo %}
-                    <a href="{% url 'photo_detail_slug' prev_photo.slug %}" class="nav-link prev-link">← Предыдущая</a>
-                {% endif %}
-                
-                {% if next_photo %}
-                    <a href="{% url 'photo_detail_slug' next_photo.slug %}" class="nav-link next-link">Следующая →</a>
-                {% endif %}
-            </div>
+            {% endif %}
         </div>
         
-        <!-- Related photos based on tags -->
-        {% if related_photos %}
-        <div class="related-photos">
-            <h3>Похожие фотографии:</h3>
-            <div class="related-photos-grid">
-                {% for related in related_photos %}
-                    <a href="{% url 'photo_detail_slug' related.slug %}" class="related-photo-card">
-                        <img src="{{ related.image.url }}" alt="{{ related.title }}">
-                        <span class="related-photo-title">{{ related.title|truncatechars:20 }}</span>
-                    </a>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-        
-        <!-- Comments section -->
         <div class="comments-section">
-            <h3>Комментарии ({{ comments.count }}):</h3>
+            <h3>Комментарии ({{ photo.comments.count }}):</h3>
             
-            <!-- Comment form -->
             {% if user.is_authenticated %}
-                <div class="comment-form">
-                    <h4>Добавить комментарий:</h4>
-                    <form method="post">
-                        {% csrf_token %}
-                        {{ comment_form.as_p }}
-                        <button type="submit" class="btn btn-primary">Отправить</button>
-                    </form>
-                </div>
+            <div class="comment-form">
+                <form method="post" action="{% url 'add_comment' photo.slug %}">
+                    {% csrf_token %}
+                    {{ comment_form.as_p }}
+                    <button type="submit" class="submit-btn">Отправить комментарий</button>
+                </form>
+            </div>
             {% else %}
-                <p><a href="{% url 'login' %}">Войдите</a>, чтобы оставить комментарий.</p>
+            <p><a href="{% url 'login' %}">Войдите</a>, чтобы оставить комментарий</p>
             {% endif %}
             
-            <!-- Comments list -->
             <div class="comments-list">
-                {% for comment in comments %}
-                    <div class="comment">
-                        <div class="comment-header">
-                            <span class="comment-author">{{ comment.user.username }}</span>
-                            <span class="comment-date">{{ comment.created_at|date:"d.m.Y H:i" }}</span>
-                        </div>
-                        <div class="comment-body">
-                            {{ comment.text }}
-                        </div>
+                {% for comment in photo.comments.all %}
+                <div class="comment">
+                    <div class="comment-header">
+                        <span class="comment-author">{{ comment.user.username }}</span>
+                        <span class="comment-date">{{ comment.created_at|date:"d.m.Y H:i" }}</span>
                     </div>
+                    <div class="comment-body">
+                        <p>{{ comment.text }}</p>
+                    </div>
+                </div>
                 {% empty %}
-                    <p>Нет комментариев. Будьте первым!</p>
+                <p>Нет комментариев</p>
                 {% endfor %}
             </div>
         </div>
