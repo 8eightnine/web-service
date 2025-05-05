@@ -42,10 +42,6 @@ class PhotoManager(models.Manager):
 class Category(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
-<<<<<<< HEAD
-=======
-
->>>>>>> dc917a34d34833d6247a57b5e93f4030aaaadf46
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name)
