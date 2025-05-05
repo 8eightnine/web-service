@@ -13,16 +13,66 @@
             <div class="upload-info">
                 <span class="uploaded-by">Загружено пользователем: {{ photo.uploaded_by.username }}</span>
                 <span class="upload-date">Дата загрузки: {{ photo.uploaded_at|date:"d.m.Y H:i" }}</span>
+                <span class="view-count">Просмотров: {{ photo.views }}</span>
             </div>
             <div class="photo-description">
                 <h3>Описание:</h3>
                 <p>{{ photo.description }}</p>
             </div>
+            
+            <div class="photo-tags">
+                <h3>Теги:</h3>
+                <div class="tags-container">
+                    {% for tag in photo.tags.all %}
+                        <a href="{% url 'photos_by_tag' tag.slug %}" class="tag-badge">{{ tag.name }}</a>
+                    {% empty %}
+                        <p>Нет тегов</p>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            {% if photo.category %}
+            <div class="photo-category">
+                <h3>Категория:</h3>
+                <a href="{% url 'photos_by_category' photo.category.slug %}" class="category-badge">
+                    {{ photo.category.name }}
+                </a>
+            </div>
+            {% endif %}
         </div>
+        
         <div class="comments-section">
-            <h3>Комментарии:</h3>
-            <!-- Здесь будет секция с комментариями -->
+            <h3>Комментарии ({{ photo.comments.count }}):</h3>
+            
+            {% if user.is_authenticated %}
+            <div class="comment-form">
+                <form method="post" action="{% url 'add_comment' photo.slug %}">
+                    {% csrf_token %}
+                    {{ comment_form.as_p }}
+                    <button type="submit" class="submit-btn">Отправить комментарий</button>
+                </form>
+            </div>
+            {% else %}
+            <p><a href="{% url 'login' %}">Войдите</a>, чтобы оставить комментарий</p>
+            {% endif %}
+            
+            <div class="comments-list">
+                {% for comment in photo.comments.all %}
+                <div class="comment">
+                    <div class="comment-header">
+                        <span class="comment-author">{{ comment.user.username }}</span>
+                        <span class="comment-date">{{ comment.created_at|date:"d.m.Y H:i" }}</span>
+                    </div>
+                    <div class="comment-body">
+                        <p>{{ comment.text }}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <p>Нет комментариев</p>
+                {% endfor %}
+            </div>
         </div>
+        
         <div class="back-link">
             <a href="{% url 'photo_list' %}">Назад к списку фотографий</a>
         </div>

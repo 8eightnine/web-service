@@ -13,7 +13,7 @@
                 <select id="year-filter" onchange="filterByYear(this.value)">
                     <option value="">Все годы</option>
                     {% for year in years %}
-                        <option value="{{ year }}">{{ year }}</option>
+                        <option value="{{ year }}" {% if current_year == year %}selected{% endif %}>{{ year }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -32,6 +32,18 @@
         </div>
         
         <div class="filter-group">
+            <h3>Фильтр по тегам</h3>
+            <div class="filter-dropdown">
+                <select id="tag-filter" onchange="filterByTag(this.value)">
+                    <option value="">Все теги</option>
+                    {% for tag in tags %}
+                        <option value="{{ tag.slug }}" {% if current_tag == tag.slug %}selected{% endif %}>{{ tag.name }} ({{ tag.photo_count }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+        <div class="filter-group">
             <h3>Сортировка</h3>
             <div class="filter-dropdown">
                 <select id="sort-filter" onchange="sortPhotos(this.value)">
@@ -39,8 +51,32 @@
                     <option value="-title" {% if current_sort == '-title' %}selected{% endif %}>По названию (Я-А)</option>
                     <option value="-uploaded_at" {% if current_sort == '-uploaded_at' %}selected{% endif %}>Сначала новые</option>
                     <option value="uploaded_at" {% if current_sort == 'uploaded_at' %}selected{% endif %}>Сначала старые</option>
+                    <option value="-views" {% if current_sort == '-views' %}selected{% endif %}>По популярности</option>
+                    <option value="-comment_count" {% if current_sort == '-comment_count' %}selected{% endif %}>По количеству комментариев</option>
                 </select>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="stats-container">
+    <h3>Статистика</h3>
+    <div class="stats-row">
+        <div class="stat-box">
+            <span class="stat-value">{{ total_photos }}</span>
+            <span class="stat-label">Всего фотографий</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-value">{{ total_users }}</span>
+            <span class="stat-label">Пользователей</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-value">{{ total_comments }}</span>
+            <span class="stat-label">Комментариев</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-value">{{ total_tags }}</span>
+            <span class="stat-label">Тегов</span>
         </div>
     </div>
 </div>
@@ -55,6 +91,11 @@
                 <img src="{{ photo.image.url }}" alt="{{ photo.title }}">
                 <div class="photo-card-content">
                     <p class="photo-card-description">{{ photo.description|truncatechars:50 }}</p>
+                    <div class="photo-tags">
+                        {% for tag in photo.tags.all %}
+                            <span class="tag-badge">{{ tag.name }}</span>
+                        {% endfor %}
+                    </div>
                     <p class="photo-meta">
                         {% if photo.category %}
                             <span class="category-badge">{{ photo.category.name }}</span>
@@ -67,58 +108,3 @@
                         {% else %}
                             анонимно
                         {% endif %}
-                    </p>
-                    {% if user.is_authenticated and photo.uploaded_by == user %}
-                    <div class="photo-actions">
-                        <a href="{% url 'edit_photo' photo.slug %}" class="edit-btn">Редактировать</a>
-                        <a href="{% url 'delete_photo' photo.slug %}" class="delete-btn">Удалить</a>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </a>
-    {% empty %}
-        <p>Нет доступных фотографий.</p>
-    {% endfor %}
-</div>
-
-<script>
-    function filterByYear(year) {
-        if (year) {
-            window.location.href = "{% url 'photos_by_year' 0 %}".replace('0', year);
-        } else {
-            window.location.href = "{% url 'photo_list' %}";
-        }
-    }
-    
-    function filterByCategory(categorySlug) {
-        if (categorySlug) {
-            window.location.href = "{% url 'photos_by_category' 'placeholder' %}".replace('placeholder', categorySlug);
-        } else {
-            window.location.href = "{% url 'photo_list' %}";
-        }
-    }
-    
-    function sortPhotos(sortOption) {
-        // Get current URL
-        let url = new URL(window.location.href);
-        // Set or update the sort parameter
-        url.searchParams.set('sort', sortOption);
-        // Navigate to the new URL
-        window.location.href = url.toString();
-    }
-    
-    // Set the current year in the dropdown if we're on a year page
-    document.addEventListener('DOMContentLoaded', function() {
-        // Check if we're on a year page
-        const pathParts = window.location.pathname.split('/');
-        if (pathParts.includes('year')) {
-            const yearIndex = pathParts.indexOf('year') + 1;
-            if (yearIndex < pathParts.length) {
-                const year = pathParts[yearIndex];
-                document.getElementById('year-filter').value = year;
-            }
-        }
-    });
-</script>
-{% endblock %}
