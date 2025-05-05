@@ -11,7 +11,8 @@ class PhotoForm(forms.ModelForm):
     
     class Meta:
         model = Photo
-        fields = ['title', 'image', 'description', 'category', 'category_type']
+        # Удаляем поле category из формы
+        fields = ['title', 'image', 'description', 'category_type']
         
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

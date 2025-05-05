@@ -98,11 +98,11 @@ def photos_by_year(request, year):
 
 def photos_by_category(request, category_slug):
     category = get_object_or_404(Category, slug=category_slug)
-    photos = Photo.objects.filter(category=category)
+    photos = Photo.objects.filter(category_type=category_slug.upper())
 
     return render(request, 'photos/photos_by_category.html', {
         'photos': photos,
-        'category': category
+        'category_type': category_slug
     })
 
 
@@ -115,14 +115,14 @@ def home(request):
 
 def photo_list(request):
     sort_by = request.GET.get('sort', '-uploaded_at')
-    category_filter = request.GET.get('category', None)
+    category_filter = request.GET.get('category_type', None)
     tag_filter = request.GET.get('tag', None)
 
     photos = Photo.objects.all()
 
     # Apply filtering
     if category_filter:
-        photos = photos.filter(category__slug=category_filter)
+        photos = photos.filter(category_type=category_filter)
 
     if tag_filter:
         photos = photos.filter(tags__name=tag_filter)

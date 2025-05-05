@@ -21,8 +21,8 @@ class PhotoCategory(Enum):
 
 class PhotoManager(models.Manager):
 
-    def get_by_category(self, category):
-        return self.filter(category=category)
+    def get_by_category(self, category_type):
+        return self.filter(category_type=category_type)
 
     def get_recent(self, count=5):
         return self.order_by('-uploaded_at')[:count]
@@ -39,10 +39,12 @@ class PhotoManager(models.Manager):
         return self.annotate(tags_count=Count('tags'))
 
 
+# Оставляем класс Category для обратной совместимости, 
+# но он больше не будет связан с Photo
 class Category(models.Model):
-    name = models.CharField(max_length=100)
-    slug = models.SlugField(max_length=100, unique=True)
-    description = models.TextField(blank=True)
+    name = models.CharField(max_length=100, verbose_name="Название")
+    slug = models.SlugField(max_length=100, unique=True, verbose_name="Слаг")
+    description = models.TextField(blank=True, verbose_name="Описание")
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -52,27 +54,35 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = "Категория"
+        verbose_name_plural = "Категории"
+
 
 class Photo(models.Model):
-    title = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=200, unique=True, blank=True)
-    image = models.ImageField(upload_to='photos/')
-    description = models.TextField()
+    title = models.CharField(max_length=200, verbose_name="Заголовок")
+    slug = models.SlugField(max_length=200, unique=True, blank=True, verbose_name="Слаг")
+    image = models.ImageField(upload_to='photos/', verbose_name="Изображение")
+    description = models.TextField(verbose_name="Описание")
     uploaded_by = models.ForeignKey(User,
                                     on_delete=models.SET_NULL,
                                     null=True,
-                                    blank=True)
-    uploaded_at = models.DateTimeField(auto_now_add=True)
-    category = models.ForeignKey(Category,
-                                 on_delete=models.SET_NULL,
-                                 null=True,
-                                 blank=True,
-                                 related_name='photos')
+                                    blank=True,
+                                    verbose_name="Загружено пользователем")
+    uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата загрузки")
+    # Удаляем поле category
+    # category = models.ForeignKey(Category,
+    #                              on_delete=models.SET_NULL,
+    #                              null=True,
+    #                              blank=True,
+    #                              related_name='photos',
+    #                              verbose_name="Категория")
     category_type = models.CharField(max_length=20,
                                      choices=PhotoCategory.choices(),
-                                     default=PhotoCategory.OTHER.name)
+                                     default=PhotoCategory.OTHER.name,
+                                     verbose_name="Тип категории")
     # Replace ManyToManyField with TaggableManager
-    tags = TaggableManager(blank=True)
+    tags = TaggableManager(blank=True, verbose_name="Теги")
 
     objects = models.Manager()  # Default manager
     custom = PhotoManager()  # Custom manager
@@ -103,15 +113,18 @@ class Photo(models.Model):
         return Photo.objects.filter(
             uploaded_at__gt=self.uploaded_at).order_by('uploaded_at').first()
 
+    # Обновляем методы, которые использовали category
     def get_previous_by_category(self):
-        if self.category:
-            return self.get_previous_by_uploaded_at(category=self.category)
-        return None
+        return Photo.objects.filter(
+            category_type=self.category_type,
+            uploaded_at__lt=self.uploaded_at
+        ).order_by('-uploaded_at').first()
 
     def get_next_by_category(self):
-        if self.category:
-            return self.get_next_by_uploaded_at(category=self.category)
-        return None
+        return Photo.objects.filter(
+            category_type=self.category_type,
+            uploaded_at__gt=self.uploaded_at
+        ).order_by('uploaded_at').first()
 
     def get_related_photos(self):
         # Get photos with the same tags using taggit
@@ -127,17 +140,26 @@ class Photo(models.Model):
     def __str__(self):
         return self.title
 
+    class Meta:
+        verbose_name = "Фотография"
+        verbose_name_plural = "Фотографии"
+
 
 class Comment(models.Model):
     photo = models.ForeignKey(Photo,
                               on_delete=models.CASCADE,
-                              related_name='comments')
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    text = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+                              related_name='comments',
+                              verbose_name="Фотография")
+    user = models.ForeignKey(User, 
+                            on_delete=models.CASCADE,
+                            verbose_name="Пользователь")
+    text = models.TextField(verbose_name="Текст комментария")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
 
     class Meta:
         ordering = ['-created_at']
+        verbose_name = "Комментарий"
+        verbose_name_plural = "Комментарии"
 
     def __str__(self):
         return f'Comment by {self.user.username} on {self.photo.title}'
