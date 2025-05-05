@@ -42,6 +42,10 @@ class PhotoManager(models.Manager):
 class Category(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
+<<<<<<< HEAD
+=======
+
+>>>>>>> dc917a34d34833d6247a57b5e93f4030aaaadf46
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name)
@@ -92,9 +96,6 @@ class Photo(models.Model):
             self.slug = slug
 
         super().save(*args, **kwargs)
-    
-    def photo_count(self):
-        return self.photos.count()
 
     def get_previous_photo(self):
         return Photo.objects.filter(
