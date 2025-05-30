@@ -1,0 +1,504 @@
+/* Импортируем основные стили сайта */
+@import url('../style.css');
+
+/* Переопределения для админ-панели */
+:root {
+    --primary: #333;
+    --secondary: #555;
+    --accent: #007bff;
+    --primary-fg: #fff;
+    --body-bg: #f4f4f4;
+    --body-fg: #333;
+}
+
+/* Базовые стили для тела страницы */
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    background-color: var(--body-bg);
+    color: var(--body-fg);
+    margin: 0;
+    padding: 0;
+}
+
+/* Стили для шапки */
+#header {
+    background-color: #333;
+    color: white;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+#branding h1 {
+    color: white;
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+}
+
+/* Улучшаем стили для навигации */
+.main-nav, #user-tools {
+    color: white;
+}
+
+#user-tools a {
+    color: #fff;
+    text-decoration: underline;
+}
+
+#user-tools a:hover {
+    color: #007bff;
+}
+
+/* Стили для заголовков модулей */
+.module h2, .module caption, .inline-group h2 {
+    background-color: #555;
+    color: white;
+    padding: 0.8rem 1rem;
+    border-radius: 4px 4px 0 0;
+    font-weight: bold;
+    margin-top: 0;
+}
+
+/* Улучшаем контраст для модулей */
+.module {
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+
+/* Стили для хлебных крошек */
+div.breadcrumbs {
+    background-color: #555;
+    color: white;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid #444;
+}
+
+div.breadcrumbs a {
+    color: #fff;
+    text-decoration: none;
+}
+
+div.breadcrumbs a:hover {
+    color: #007bff;
+    text-decoration: underline;
+}
+
+/* Улучшаем стили для ссылок */
+a:link, a:visited {
+    color: #007bff;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+/* Стили для кнопок */
+.button, input[type=submit], input[type=button], .submit-row input, a.button {
+    background-color: #007bff;
+    color: white;
+    padding: 0.7rem 1.2rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-weight: bold;
+    display: inline-block;
+    text-align: center;
+}
+
+.button:hover, input[type=submit]:hover, input[type=button]:hover, .submit-row input:hover, a.button:hover {
+    background-color: #0056b3;
+    text-decoration: none;
+}
+
+.button.default, input[type=submit].default, .submit-row input.default {
+    background-color: #28a745;
+    font-weight: bold;
+}
+
+.button.default:hover, input[type=submit].default:hover, .submit-row input.default:hover {
+    background-color: #218838;
+}
+
+/* Улучшаем стили для форм */
+form input[type="text"], 
+form input[type="password"], 
+form input[type="email"], 
+form input[type="number"], 
+form input[type="url"], 
+form input[type="tel"], 
+form textarea, 
+form select, 
+.vTextField {
+    width: 100%;
+    padding: 0.7rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: Arial, sans-serif;
+    background-color: #fff;
+    color: #333;
+}
+
+form input:focus, form textarea:focus, form select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+/* Улучшаем стили для фильтров */
+#changelist-filter {
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-left: 1rem;
+}
+
+#changelist-filter h2 {
+    background-color: #333;
+    color: white;
+    padding: 0.8rem 1rem;
+    border-radius: 4px 4px 0 0;
+    margin-top: 0;
+}
+
+#changelist-filter ul {
+    padding: 0.5rem 1rem;
+}
+
+#changelist-filter li {
+    padding: 0.3rem 0;
+}
+
+#changelist-filter li.selected {
+    border-left: 4px solid #007bff;
+    padding-left: 0.5rem;
+    font-weight: bold;
+}
+
+#changelist-filter a {
+    color: #333;
+}
+
+#changelist-filter a:hover {
+    color: #007bff;
+}
+
+/* Улучшаем стили для таблиц */
+#changelist table {
+    border-collapse: collapse;
+    width: 100%;
+    background-color: white;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#changelist table thead th {
+    background-color: #f8f9fa;
+    color: #333;
+    padding: 0.8rem;
+    border-bottom: 2px solid #dee2e6;
+    text-align: left;
+    font-weight: bold;
+}
+
+#changelist table tbody tr {
+    border-bottom: 1px solid #dee2e6;
+}
+
+#changelist table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+#changelist table tbody td {
+    padding: 0.8rem;
+    vertical-align: middle;
+}
+
+/* Стили для сообщений */
+.messagelist {
+    padding: 0;
+    margin: 0 0 1rem 0;
+    list-style: none;
+}
+
+.messagelist li {
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.messagelist li.success {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.messagelist li.error {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+.messagelist li.warning {
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    color: #856404;
+}
+
+.messagelist li.info {
+    background-color: #d1ecf1;
+    border: 1px solid #bee5eb;
+    color: #0c5460;
+}
+
+/* Стили для fieldset */
+fieldset.module {
+    background: white;
+    padding: 1rem;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+    border: none;
+}
+
+/* Стили для inline групп */
+.inline-group {
+    background: white;
+    padding: 1rem;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+}
+
+.inline-related {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+}
+
+.inline-related h3 {
+    background-color: #f8f9fa;
+    padding: 0.5rem;
+    margin: -1rem -1rem 1rem -1rem;
+    border-bottom: 1px solid #ddd;
+    font-size: 1rem;
+}
+
+/* Стили для футера */
+#footer {
+    background-color: #333;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    margin-top: 2rem;
+}
+
+/* Стили для пагинации */
+.paginator {
+    padding: 0.5rem 0;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.paginator a, .paginator .this-page {
+    padding: 0.3rem 0.6rem;
+    margin: 0 0.2rem;
+    border-radius: 4px;
+}
+
+.paginator a {
+    background-color: #fff;
+    color: #007bff;
+    border: 1px solid #dee2e6;
+}
+
+.paginator a:hover {
+    background-color: #007bff;
+    color: #fff;
+    text-decoration: none;
+}
+
+.paginator .this-page {
+    background-color: #007bff;
+    color: #fff;
+    font-weight: bold;
+}
+
+/* Стили для действий */
+.actions {
+    background-color: #f8f9fa;
+    padding: 0.8rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.actions label {
+    margin-right: 0.5rem;
+}
+
+.actions select {
+    margin-right: 0.5rem;
+    padding: 0.3rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.action-counter {
+    margin-left: auto;
+    color: #666;
+}
+
+/* Стили для строки поиска */
+#searchbar {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    display: flex;
+}
+
+#searchbar input[type="text"] {
+    flex-grow: 1;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px 0 0 4px;
+}
+
+#searchbar input[type="submit"] {
+    border-radius: 0 4px 4px 0;
+    padding: 0.5rem 1rem;
+    margin-left: -1px;
+}
+
+/* Стили для календаря и даты */
+.calendarbox, .clockbox {
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    padding: 0.5rem;
+}
+
+.calendar {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.calendar td, .calendar th {
+    padding: 0.3rem;
+    text-align: center;
+}
+
+.calendar caption {
+    background-color: #f8f9fa;
+    padding: 0.5rem;
+    border-radius: 4px 4px 0 0;
+    font-weight: bold;
+}
+
+/* Стили для вкладок */
+.object-tools {
+    margin-top: 1rem;
+    float: right;
+}
+
+.object-tools a {
+    background-color: #28a745;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    display: inline-block;
+    margin-left: 0.5rem;
+}
+
+.object-tools a:hover {
+    background-color: #218838;
+    text-decoration: none;
+}
+
+/* Стили для селекторов даты и времени */
+.datetimeshortcuts {
+    color: #007bff;
+}
+
+.datetimeshortcuts a {
+    margin-left: 0.5rem;
+}
+
+/* Стили для readonly полей */
+.readonly {
+    background-color: #f8f9fa;
+    padding: 0.5rem;
+    border-radius: 4px;
+    color: #666;
+}
+
+/* Стили для help текста */
+.help {
+    color: #666;
+    font-size: 0.9rem;
+    margin-top: 0.3rem;
+}
+
+/* Стили для ошибок */
+.errorlist {
+    color: #dc3545;
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0;
+}
+
+.errorlist li {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    padding: 0.5rem;
+    border-radius: 4px;
+}
+
+/* Стили для required меток */
+.required label, label.required {
+    font-weight: bold;
+}
+
+.required label:after, label.required:after {
+    content: ' *';
+    color: #dc3545;
+}
+
+/* Стили для dashboard */
+.dashboard .module {
+    margin-bottom: 1.5rem;
+}
+
+.dashboard .module table {
+    width: 100%;
+}
+
+.dashboard .module table th {
+    width: 100%;
+    padding: 0.8rem;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.dashboard .module table td {
+    padding: 0.8rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.dashboard .module table tr:last-child td {
+    border-bottom: none;
+}
