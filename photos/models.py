@@ -1,3 +1,4 @@
+from datetime import timedelta, timezone
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
@@ -71,11 +72,10 @@ class Photo(models.Model):
     category_type = models.CharField(max_length=20,
                                      choices=PhotoCategory.choices(),
                                      default=PhotoCategory.OTHER.name)
-    # Replace ManyToManyField with TaggableManager
     tags = TaggableManager(blank=True)
 
-    objects = models.Manager()  # Default manager
-    custom = PhotoManager()  # Custom manager
+    objects = models.Manager()
+    custom = PhotoManager()
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -114,7 +114,6 @@ class Photo(models.Model):
         return None
 
     def get_related_photos(self):
-        # Get photos with the same tags using taggit
         if not self.tags.exists():
             return Photo.objects.none()
 

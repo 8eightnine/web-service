@@ -1,13 +1,9 @@
-from itertools import count
-from django.db.models import DateTimeField
 from django.db.models.functions import ExtractYear
 from django.shortcuts import render, get_object_or_404, redirect, Http404
 from django.contrib.auth.decorators import login_required
-from django.urls import reverse
-from django.utils.text import slugify
-from .models import Photo, Category, PhotoCategory
-from .forms import CommentForm, PhotoForm, CategoryForm
-from django.db.models import Count, Sum, Avg, Max, Min
+from .models import Photo, Category
+from .forms import CommentForm, PhotoForm
+from django.db.models import Count, Avg, Max, Value, FloatField, ExpressionWrapper, Count, F
 
 
 def redirect_to_home(request):
@@ -262,6 +258,16 @@ def stats_view(request):
     # Count total photos
     total_photos = Photo.objects.count()
 
+    categories_with_percentages = Category.objects.annotate(
+            photo_count=Count('photos')
+        ).annotate(
+            percentage=ExpressionWrapper(
+                F('photo_count') * 100.0 / Value(total_photos),
+                output_field=FloatField()
+            )
+        )
+
+
     # Photos per category using Count and annotation
     categories_with_counts = Category.objects.annotate(
         photo_count=Count('photos')).order_by('-photo_count')
@@ -285,6 +291,7 @@ def stats_view(request):
         request, 'photos/stats.html', {
             'total_photos': total_photos,
             'categories_with_counts': categories_with_counts,
+            'categories_with_percentages': categories_with_percentages,
             'photos_per_year': photos_per_year,
             'latest_photo': latest_photo,
             'earliest_photo': earliest_photo,
