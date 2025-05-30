@@ -16,7 +16,7 @@ class CommentInline(admin.TabularInline):
     readonly_fields = ('created_at',)
 
 class HasTagsFilter(SimpleListFilter):
-    title = 'наличие тегов'
+    title = 'Наличие тегов'
     parameter_name = 'has_tags'
     
     def lookups(self, request, model_admin):
@@ -97,13 +97,33 @@ class PhotoAdmin(admin.ModelAdmin):
     
     # Пользовательское действие 3
     def download_photos(self, request, queryset):
-        # В реальном приложении здесь был бы код для создания архива с фотографиями
-        self.message_user(
-            request, 
-            f'Подготовлено {queryset.count()} фотографий для скачивания',
-            messages.INFO
-        )
-    download_photos.short_description = "Скачать выбранные фотографии"
+        from django.http import HttpResponse
+        import os
+        
+        if queryset.count() > 1:
+            self.message_user(request, 'Можно скачать только одну фотографию за раз. Выберите одну фотографию.', messages.ERROR)
+            return
+        
+        photo = queryset.first()
+        if not photo.image:
+            self.message_user(request, 'У выбранной фотографии нет изображения', messages.ERROR)
+            return
+        
+        if not os.path.exists(photo.image.path):
+            self.message_user(request, 'Файл изображения не найден на сервере', messages.ERROR)
+            return
+        
+        try:
+            with open(photo.image.path, 'rb') as f:
+                response = HttpResponse(f.read(), content_type='application/octet-stream')
+                filename = os.path.basename(photo.image.name)
+                response['Content-Disposition'] = f'attachment; filename="{filename}"'
+                self.message_user(request, f'Фотография "{filename}" успешно скачана', messages.SUCCESS)
+                return response
+        except Exception as e:
+            self.message_user(request, f'Ошибка при скачивании файла: {str(e)}', messages.ERROR)
+            return
+    download_photos.short_description = "Скачать выбранную фотографию"
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
