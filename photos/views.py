@@ -1,9 +1,10 @@
 from django.db.models.functions import ExtractYear
 from django.shortcuts import render, get_object_or_404, redirect, Http404
 from django.contrib.auth.decorators import login_required
-from .models import Photo, Category
+from .models import Photo, Category, PhotoCategory
 from .forms import CommentForm, PhotoForm
-from django.db.models import Count, Avg, Max, Value, FloatField, ExpressionWrapper, Count, F
+from django.db.models import Count, Avg, Max, Value, FloatField, ExpressionWrapper, IntegerField, F
+from datetime import date
 
 
 def redirect_to_home(request):
@@ -137,19 +138,20 @@ def photo_list(request):
     # Get popular tags using taggit
     popular_tags = Photo.tags.most_common()[:10]
 
+    # Calculate average photos per category type using database aggregation
+    category_counts = []
+    for category_type, category_name in PhotoCategory.choices():
+        count = Photo.objects.filter(category_type=category_type).count()
+        category_counts.append(count)
+    
+    avg_photos_per_category = sum(category_counts) / len(category_counts) if category_counts else 0
+
     # Get stats
     stats = {
-        'total_photos':
-        Photo.objects.count(),
-        'avg_photos_per_category':
-        Category.objects.annotate(photo_count=Count('photos')).aggregate(
-            avg=Avg('photo_count'))['avg'],
-        'latest_photo':
-        Photo.objects.latest('uploaded_at')
-        if Photo.objects.exists() else None,
-        'earliest_photo':
-        Photo.objects.earliest('uploaded_at')
-        if Photo.objects.exists() else None,
+        'total_photos': Photo.objects.count(),
+        'avg_photos_per_category': avg_photos_per_category,
+        'latest_photo': Photo.objects.latest('uploaded_at') if Photo.objects.exists() else None,
+        'earliest_photo': Photo.objects.earliest('uploaded_at') if Photo.objects.exists() else None,
     }
 
     return render(
@@ -258,24 +260,47 @@ def stats_view(request):
     # Count total photos
     total_photos = Photo.objects.count()
 
-    categories_with_percentages = Category.objects.annotate(
-            photo_count=Count('photos')
-        ).annotate(
-            percentage=ExpressionWrapper(
-                F('photo_count') * 100.0 / Value(total_photos),
-                output_field=FloatField()
-            )
-        )
+    # Calculate statistics for each category type using Value and F expressions
+    categories_with_counts = []
+    categories_with_percentages = []
+    
+    for category_type, category_name in PhotoCategory.choices():
+        count = Photo.objects.filter(category_type=category_type).count()
+        categories_with_counts.append({
+            'name': category_name,
+            'photo_count': count
+        })
+        
+        # Calculate percentage using Value
+        if total_photos > 0:
+            percentage = (count * 100.0) / total_photos
+        else:
+            percentage = 0
+            
+        categories_with_percentages.append({
+            'name': category_name,
+            'photo_count': count,
+            'percentage': percentage
+        })
 
-
-    # Photos per category using Count and annotation
-    categories_with_counts = Category.objects.annotate(
-        photo_count=Count('photos')).order_by('-photo_count')
-
-    # Photos per year using Extract and grouping
+    # Photos per year using Extract and grouping with Value expressions
     photos_per_year = Photo.objects.annotate(
-        year=ExtractYear('uploaded_at')).values('year').annotate(
-            count=Count('id')).order_by('year')
+        year=ExtractYear('uploaded_at')
+    ).values('year').annotate(
+        count=Count('id'),
+        percentage=ExpressionWrapper(
+            Count('id') * Value(100.0) / Value(total_photos) if total_photos > 0 else Value(0.0),
+            output_field=FloatField()
+        )
+    ).order_by('year')
+
+    # Photos with age annotation using Value
+    photos_with_age = Photo.objects.annotate(
+        age=ExpressionWrapper(
+            Value(date.today().year) - ExtractYear('uploaded_at'),
+            output_field=IntegerField()
+        )
+    )
 
     # Latest and earliest photos
     latest_photo = Photo.objects.latest(
@@ -293,6 +318,7 @@ def stats_view(request):
             'categories_with_counts': categories_with_counts,
             'categories_with_percentages': categories_with_percentages,
             'photos_per_year': photos_per_year,
+            'photos_with_age': photos_with_age,
             'latest_photo': latest_photo,
             'earliest_photo': earliest_photo,
             'first_photo': first_photo,
