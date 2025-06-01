@@ -1,34 +1,110 @@
 {% extends 'base.html' %}
 
-{% block title %}Загрузить фотографию{% endblock %}
+{% block title %}Загрузить фотографию - {{ form_type }}{% endblock %}
 
 {% block content %}
-<div class="upload-container">
-    <div class="upload-form">
-        <h1>Загрузить фотографию</h1>
-        <form method="post" enctype="multipart/form-data" id="uploadForm">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit">Загрузить</button>
-        </form>
-        <div class="back-link">
-            <a href="{% url 'photo_list' %}">Назад к списку фотографий</a>
-        </div>
-        
-        {% if not user.is_authenticated %}
-            <div class="anonymous-notice">
-                <p>Вы загружаете фотографию как анонимный пользователь. Она не будет привязана к вашему аккаунту.</p>
-            </div>
-        {% endif %}
-    </div>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="upload-container">
+                <div class="upload-form">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h1>Загрузить фотографию</h1>
+                    </div>
 
-    <div class="preview-container">
-        <h2>Предпросмотр</h2>
-        <div id="imagePreview">
-            <p>Изображение появится здесь</p>
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data" id="uploadForm" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        {% for field in form %}
+                            <div class="mb-3">
+                                <label for="{{ field.id_for_label }}" class="form-label">
+                                    {{ field.label }}
+                                    {% if field.field.required %}
+                                        <span class="text-danger">*</span>
+                                    {% endif %}
+                                </label>
+                                
+                                {{ field }}
+                                
+                                {% if field.help_text %}
+                                    <div class="form-text">{{ field.help_text }}</div>
+                                {% endif %}
+                                
+                                {% if field.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in field.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'photo_list' %}" class="btn btn-secondary me-md-2">Отмена</a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-upload"></i> Опубликовать
+                            </button>
+                        </div>
+                    </form>
+                    
+                    {% if not user.is_authenticated %}
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Внимание:</strong> Вы загружаете фотографию как анонимный пользователь. 
+                            Она не будет привязана к вашему аккаунту.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-        <h3 class="preview-title" id="titlePreview"></h3>
-        <div class="preview-description" id="descriptionPreview"></div>
+<!--
+        <div class="col-md-4">
+            <div class="preview-container">
+                <h3>Предпросмотр</h3>
+                <div class="card">
+                    <div id="imagePreview" class="card-img-top d-flex align-items-center justify-content-center" 
+                         style="height: 200px; background-color: #f8f9fa;">
+                        <p class="text-muted">Изображение появится здесь</p>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title" id="titlePreview">Название фотографии</h5>
+                        <p class="card-text" id="descriptionPreview">Описание фотографии</p>
+                        <div class="mb-2">
+                            <small class="text-muted">Категория: </small>
+                            <span id="categoryPreview" class="badge bg-secondary">Не выбрана</span>
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-muted">Рейтинг: </small>
+                            <span id="ratingPreview" class="badge bg-warning">0</span>
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-muted">Теги: </small>
+                            <div id="tagsPreview"></div>
+                        </div>
+                        <div id="featuredPreview"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        -->
     </div>
 </div>
 
@@ -37,38 +113,148 @@ document.addEventListener('DOMContentLoaded', function() {
     const titleInput = document.querySelector('input[name="title"]');
     const descInput = document.querySelector('textarea[name="description"]');
     const imageInput = document.querySelector('input[name="image"]');
+    const categorySelect = document.querySelector('select[name="category_type"]');
+    const ratingInput = document.querySelector('input[name="rating"]');
+    const tagsInput = document.querySelector('input[name="tags"]');
+    const featuredInput = document.querySelector('input[name="is_featured"]');
     
-    titleInput.addEventListener('input', function() {
-        document.getElementById('titlePreview').textContent = this.value || 'Название фотографии';
-    });
+    // Обновление предпросмотра заголовка
+    if (titleInput) {
+        titleInput.addEventListener('input', function() {
+            document.getElementById('titlePreview').textContent = this.value || 'Название фотографии';
+        });
+    }
     
-    descInput.addEventListener('input', function() {
-        document.getElementById('descriptionPreview').textContent = this.value || 'Описание фотографии';
-    });
+    // Обновление предпросмотра описания
+    if (descInput) {
+        descInput.addEventListener('input', function() {
+            document.getElementById('descriptionPreview').textContent = this.value || 'Описание фотографии';
+        });
+    }
     
-    imageInput.addEventListener('change', function() {
-        const file = this.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                const preview = document.getElementById('imagePreview');
-                preview.innerHTML = '';
-                preview.appendChild(img);
+    // Обновление предпросмотра изображения
+    if (imageInput) {
+        imageInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style.width = '100%';
+                    img.style.height = '200px';
+                    img.style.objectFit = 'cover';
+                    const preview = document.getElementById('imagePreview');
+                    preview.innerHTML = '';
+                    preview.appendChild(img);
+                }
+                reader.readAsDataURL(file);
             }
-            reader.readAsDataURL(file);
-        }
-    });
+        });
+    }
     
-    // Initialize with default text if fields are empty
-    if (titleInput.value) {
+    // Обновление предпросмотра категории
+    if (categorySelect) {
+        categorySelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            document.getElementById('categoryPreview').textContent = selectedOption.text || 'Не выбрана';
+        });
+    }
+    
+    // Обновление предпросмотра рейтинга
+    if (ratingInput) {
+        ratingInput.addEventListener('input', function() {
+            document.getElementById('ratingPreview').textContent = this.value || '0';
+        });
+    }
+    
+    // Обновление предпросмотра тегов
+    if (tagsInput) {
+        tagsInput.addEventListener('input', function() {
+            const tagsContainer = document.getElementById('tagsPreview');
+            const tags = this.value.split(',').map(tag => tag.trim()).filter(tag => tag);
+            
+            if (tags.length > 0) {
+                tagsContainer.innerHTML = tags.map(tag => 
+                    `<span class="badge bg-info me-1">${tag}</span>`
+                ).join('');
+            } else {
+                tagsContainer.innerHTML = '<span class="text-muted">Нет тегов</span>';
+            }
+        });
+    }
+    
+    // Обновление предпросмотра рекомендуемого
+    if (featuredInput) {
+        featuredInput.addEventListener('change', function() {
+            const featuredContainer = document.getElementById('featuredPreview');
+            if (this.checked) {
+                featuredContainer.innerHTML = '<span class="badge bg-success">Рекомендуемое</span>';
+            } else {
+                featuredContainer.innerHTML = '';
+            }
+        });
+    }
+    
+    // Инициализация с текущими значениями
+    if (titleInput && titleInput.value) {
         document.getElementById('titlePreview').textContent = titleInput.value;
     }
     
-    if (descInput.value) {
+    if (descInput && descInput.value) {
         document.getElementById('descriptionPreview').textContent = descInput.value;
+    }
+    
+    if (categorySelect && categorySelect.value) {
+        const selectedOption = categorySelect.options[categorySelect.selectedIndex];
+        document.getElementById('categoryPreview').textContent = selectedOption.text;
+    }
+    
+    if (ratingInput && ratingInput.value) {
+        document.getElementById('ratingPreview').textContent = ratingInput.value;
+    }
+    
+    if (tagsInput && tagsInput.value) {
+        const tags = tagsInput.value.split(',').map(tag => tag.trim()).filter(tag => tag);
+        if (tags.length > 0) {
+            document.getElementById('tagsPreview').innerHTML = tags.map(tag => 
+                `<span class="badge bg-info me-1">${tag}</span>`
+            ).join('');
+        }
+    }
+    
+    if (featuredInput && featuredInput.checked) {
+        document.getElementById('featuredPreview').innerHTML = '<span class="badge bg-success">Рекомендуемое</span>';
     }
 });
 </script>
+
+<style>
+.form-type-switcher .btn {
+    border-radius: 0;
+}
+
+.form-type-switcher .btn:first-child {
+    border-top-left-radius: 0.375rem;
+    border-bottom-left-radius: 0.375rem;
+}
+
+.form-type-switcher .btn:last-child {
+    border-top-right-radius: 0.375rem;
+    border-bottom-right-radius: 0.375rem;
+}
+
+.preview-container .card {
+    position: sticky;
+    top: 20px;
+}
+
+.validation-info .card {
+    font-size: 0.9rem;
+}
+
+.validation-info ul li {
+    margin-bottom: 0.25rem;
+}
+</style>
 {% endblock %}

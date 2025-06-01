@@ -5,6 +5,15 @@ from enum import Enum
 from django.db.models import Count, F, Q, Value, ExpressionWrapper
 from django.db.models.functions import ExtractYear
 from taggit.managers import TaggableManager
+import uuid
+import os
+
+
+def generate_unique_filename(instance, filename):
+    """Генерирует уникальное имя файла для избежания конфликтов"""
+    ext = filename.split('.')[-1]
+    filename = f"{uuid.uuid4().hex}.{ext}"
+    return os.path.join('photos/', filename)
 
 
 class PhotoCategory(Enum):
@@ -31,7 +40,6 @@ class PhotoManager(models.Manager):
         return self.filter(uploaded_by=user)
 
     def get_popular_tags(self, limit=10):
-        # Updated to work with taggit
         from django.db.models import Count
         return Photo.tags.most_common()[:limit]
 
@@ -39,8 +47,6 @@ class PhotoManager(models.Manager):
         return self.annotate(tags_count=Count('tags'))
 
 
-# Оставляем класс Category для обратной совместимости, 
-# но он больше не будет связан с Photo
 class Category(models.Model):
     name = models.CharField(max_length=100, verbose_name="Название")
     slug = models.SlugField(max_length=100, unique=True, verbose_name="Слаг")
@@ -62,7 +68,11 @@ class Category(models.Model):
 class Photo(models.Model):
     title = models.CharField(max_length=200, verbose_name="Заголовок")
     slug = models.SlugField(max_length=200, unique=True, blank=True, verbose_name="Слаг")
-    image = models.ImageField(upload_to='photos/', verbose_name="Изображение")
+    image = models.ImageField(
+        upload_to=generate_unique_filename, 
+        verbose_name="Изображение",
+        help_text="Поддерживаемые форматы: JPG, PNG, GIF. Максимальный размер: 10MB"
+    )
     description = models.TextField(verbose_name="Описание")
     uploaded_by = models.ForeignKey(User,
                                     on_delete=models.SET_NULL,
@@ -70,31 +80,21 @@ class Photo(models.Model):
                                     blank=True,
                                     verbose_name="Загружено пользователем")
     uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата загрузки")
-    # Удаляем поле category
-    # category = models.ForeignKey(Category,
-    #                              on_delete=models.SET_NULL,
-    #                              null=True,
-    #                              blank=True,
-    #                              related_name='photos',
-    #                              verbose_name="Категория")
     category_type = models.CharField(max_length=20,
                                      choices=PhotoCategory.choices(),
                                      default=PhotoCategory.OTHER.name,
                                      verbose_name="Тип категории")
-    # Replace ManyToManyField with TaggableManager
     tags = TaggableManager(blank=True, verbose_name="Теги")
 
-    objects = models.Manager()  # Default manager
-    custom = PhotoManager()  # Custom manager
+    objects = models.Manager()
+    custom = PhotoManager()
 
     def save(self, *args, **kwargs):
         if not self.slug:
             base_slug = slugify(self.title)
-            if not base_slug:  # Если slugify вернул пустую строку для кириллицы
-                # Используем транслитерацию или ID
+            if not base_slug:
                 base_slug = f"photo-{self.pk or 'new'}"
 
-            # Проверяем уникальность слага
             counter = 0
             slug = base_slug
             while Photo.objects.filter(slug=slug).exclude(pk=self.pk).exists():
@@ -113,7 +113,6 @@ class Photo(models.Model):
         return Photo.objects.filter(
             uploaded_at__gt=self.uploaded_at).order_by('uploaded_at').first()
 
-    # Обновляем методы, которые использовали category
     def get_previous_by_category(self):
         return Photo.objects.filter(
             category_type=self.category_type,
@@ -127,7 +126,6 @@ class Photo(models.Model):
         ).order_by('uploaded_at').first()
 
     def get_related_photos(self):
-        # Get photos with the same tags using taggit
         if not self.tags.exists():
             return Photo.objects.none()
 
@@ -153,7 +151,7 @@ class Comment(models.Model):
     user = models.ForeignKey(User, 
                             on_delete=models.CASCADE,
                             verbose_name="Пользователь")
-    text = models.TextField(verbose_name="Текст комментария")
+    text = models.TextField(verbose_name="")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
 
     class Meta:

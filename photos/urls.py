@@ -1,4 +1,4 @@
-from django.urls import path, register_converter
+from django.urls import path, register_converter, re_path
 from . import views, converters
 
 register_converter(converters.StringConverter, 'string')
@@ -12,11 +12,14 @@ urlpatterns = [
     path('photo/<slug:slug>/delete/', views.delete_photo, name='delete_photo'),
     path('year/<year:year>/', views.photos_by_year, name='photos_by_year'),
     path('tag/<slug:tag_slug>/', views.photos_by_tag, name='photos_by_tag'),
-        path('category/<slug:category_slug>/',
-         views.photos_by_category,
-         name='photos_by_category'),
+    path('category/<slug:category_slug>/', views.photos_by_category, name='photos_by_category'),
     path('tags/', views.tag_list, name='tag_list'),
     path('stats/', views.stats_view, name='stats'),
     path('redirect/', views.redirect_to_home, name='redirect_to_home'),
+    # Форма связанная с моделью (ModelForm)
     path('upload/', views.upload_photo, name='upload_photo'),
+    # Форма НЕ связанная с моделью (обычная Form)
+    path('upload-non-model/', views.upload_photo_non_model, name='upload_photo_non_model'),
+    # Используем re_path для поддержки кириллицы в тегах
+    re_path(r'^tag/(?P<tag_slug>[\w\-а-яё]+)/$', views.photos_by_tag, name='photos_by_tag'),
 ]
