@@ -35,10 +35,10 @@ def upload_photo(request):
                     ]
                     photo.tags.add(*tags_list)
 
-                messages.success(
-                    request,
-                    f'Фотография успешно загружена! Файл сохранен как: {photo.image.name}'
-                )
+                # messages.success(
+                #     request,
+                #     f'Фотография успешно загружена! Файл сохранен как: {photo.image.name}'
+                # )
                 return redirect('photo_detail_slug', slug=photo.slug)
             except Exception as e:
                 messages.error(request, f'Ошибка при загрузке: {str(e)}')
@@ -85,10 +85,10 @@ def upload_photo_non_model(request):
                     ]
                     photo.tags.add(*tags_list)
 
-                messages.success(
-                    request,
-                    f'Фотография успешно загружена! Файл сохранен как: {photo.image.name}'
-                )
+                # messages.success(
+                #     request,
+                #     f'Фотография успешно загружена! Файл сохранен как: {photo.image.name}'
+                # )
                 return redirect('photo_detail_slug', slug=photo.slug)
             except Exception as e:
                 messages.error(request, f'Ошибка при загрузке: {str(e)}')
