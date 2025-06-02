@@ -67,19 +67,23 @@ class Category(models.Model):
 
 class Photo(models.Model):
     title = models.CharField(max_length=200, verbose_name="Заголовок")
-    slug = models.SlugField(max_length=200, unique=True, blank=True, verbose_name="Слаг")
+    slug = models.SlugField(max_length=200,
+                            unique=True,
+                            blank=True,
+                            verbose_name="Слаг")
     image = models.ImageField(
-        upload_to=generate_unique_filename, 
+        upload_to=generate_unique_filename,
         verbose_name="Изображение",
-        help_text="Поддерживаемые форматы: JPG, PNG, GIF. Максимальный размер: 10MB"
-    )
+        help_text=
+        "Поддерживаемые форматы: JPG, PNG, GIF. Максимальный размер: 10MB")
     description = models.TextField(verbose_name="Описание")
     uploaded_by = models.ForeignKey(User,
                                     on_delete=models.SET_NULL,
                                     null=True,
                                     blank=True,
                                     verbose_name="Загружено пользователем")
-    uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата загрузки")
+    uploaded_at = models.DateTimeField(auto_now_add=True,
+                                       verbose_name="Дата загрузки")
     category_type = models.CharField(max_length=20,
                                      choices=PhotoCategory.choices(),
                                      default=PhotoCategory.OTHER.name,
@@ -116,14 +120,12 @@ class Photo(models.Model):
     def get_previous_by_category(self):
         return Photo.objects.filter(
             category_type=self.category_type,
-            uploaded_at__lt=self.uploaded_at
-        ).order_by('-uploaded_at').first()
+            uploaded_at__lt=self.uploaded_at).order_by('-uploaded_at').first()
 
     def get_next_by_category(self):
         return Photo.objects.filter(
             category_type=self.category_type,
-            uploaded_at__gt=self.uploaded_at
-        ).order_by('uploaded_at').first()
+            uploaded_at__gt=self.uploaded_at).order_by('uploaded_at').first()
 
     def get_related_photos(self):
         if not self.tags.exists():
@@ -148,11 +150,12 @@ class Comment(models.Model):
                               on_delete=models.CASCADE,
                               related_name='comments',
                               verbose_name="Фотография")
-    user = models.ForeignKey(User, 
-                            on_delete=models.CASCADE,
-                            verbose_name="Пользователь")
+    user = models.ForeignKey(User,
+                             on_delete=models.CASCADE,
+                             verbose_name="Пользователь")
     text = models.TextField(verbose_name="")
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    created_at = models.DateTimeField(auto_now_add=True,
+                                      verbose_name="Дата создания")
 
     class Meta:
         ordering = ['-created_at']

@@ -2,6 +2,7 @@ from django.db.models.functions import ExtractYear
 from django.shortcuts import render, get_object_or_404, redirect, Http404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.files.storage import default_storage
 from .models import Photo, Category, PhotoCategory
 from .forms import CommentForm, PhotoForm, PhotoUploadForm
 from django.db.models import Count, Avg, Max, Value, FloatField, ExpressionWrapper, IntegerField, F
@@ -21,15 +22,23 @@ def upload_photo(request):
                 photo = form.save(commit=False)
                 if request.user.is_authenticated:
                     photo.uploaded_by = request.user
+
+                # Сохраняем фото - upload_to автоматически вызовется
                 photo.save()
-                
+
                 # Обработка тегов
                 tags_text = form.cleaned_data.get('tags', '')
                 if tags_text:
-                    tags_list = [tag.strip() for tag in tags_text.split(',') if tag.strip()]
+                    tags_list = [
+                        tag.strip() for tag in tags_text.split(',')
+                        if tag.strip()
+                    ]
                     photo.tags.add(*tags_list)
-                
-                messages.success(request, 'Фотография успешно загружена!')
+
+                messages.success(
+                    request,
+                    f'Фотография успешно загружена! Файл сохранен как: {photo.image.name}'
+                )
                 return redirect('photo_detail_slug', slug=photo.slug)
             except Exception as e:
                 messages.error(request, f'Ошибка при загрузке: {str(e)}')
@@ -37,12 +46,14 @@ def upload_photo(request):
             messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
     else:
         form = PhotoForm()
-    
-    return render(request, 'photos/upload_photo.html', {
-        'form': form,
-        'form_type': 'ModelForm',
-        'form_description': 'Форма связанная с моделью'
-    })
+
+    return render(
+        request, 'photos/upload_photo.html', {
+            'form': form,
+            'form_type': 'ModelForm',
+            'form_description':
+            'Форма связанная с моделью (использует upload_to)'
+        })
 
 
 def upload_photo_non_model(request):
@@ -55,22 +66,29 @@ def upload_photo_non_model(request):
                 photo = Photo(
                     title=form.cleaned_data['title'],
                     description=form.cleaned_data['description'],
-                    image=form.cleaned_data['image'],
-                    category_type=form.cleaned_data['category_type']
-                )
-                
+                    image=form.
+                    cleaned_data['image'],  # upload_to сработает при save()
+                    category_type=form.cleaned_data['category_type'])
+
                 if request.user.is_authenticated:
                     photo.uploaded_by = request.user
-                
+
+                # При сохранении автоматически вызовется upload_to
                 photo.save()
-                
+
                 # Обработка тегов
                 tags_text = form.cleaned_data.get('tags', '')
                 if tags_text:
-                    tags_list = [tag.strip() for tag in tags_text.split(',') if tag.strip()]
+                    tags_list = [
+                        tag.strip() for tag in tags_text.split(',')
+                        if tag.strip()
+                    ]
                     photo.tags.add(*tags_list)
-                
-                messages.success(request, 'Фотография успешно загружена!')
+
+                messages.success(
+                    request,
+                    f'Фотография успешно загружена! Файл сохранен как: {photo.image.name}'
+                )
                 return redirect('photo_detail_slug', slug=photo.slug)
             except Exception as e:
                 messages.error(request, f'Ошибка при загрузке: {str(e)}')
@@ -78,12 +96,16 @@ def upload_photo_non_model(request):
             messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
     else:
         form = PhotoUploadForm()
-    
-    return render(request, 'photos/upload_photo_non_model.html', {
-        'form': form,
-        'form_type': 'Form',
-        'form_description': 'Форма НЕ связанная с моделью'
-    })
+
+    return render(
+        request, 'photos/upload_photo_non_model.html', {
+            'form':
+            form,
+            'form_type':
+            'Form',
+            'form_description':
+            'Форма НЕ связанная с моделью (также использует upload_to)'
+        })
 
 
 @login_required
@@ -91,30 +113,37 @@ def edit_photo(request, slug):
     photo = get_object_or_404(Photo, slug=slug)
 
     if photo.uploaded_by != request.user and not request.user.is_staff:
-        messages.error(request, 'У вас нет прав для редактирования этой фотографии.')
+        messages.error(request,
+                       'У вас нет прав для редактирования этой фотографии.')
         return redirect('photo_detail_slug', slug=slug)
 
     if request.method == 'POST':
         form = PhotoForm(request.POST, request.FILES, instance=photo)
         if form.is_valid():
             try:
-                form.save()
-                
+                # При сохранении новое изображение будет обработано через upload_to
+                updated_photo = form.save()
+
                 # Обработка тегов
                 tags_text = form.cleaned_data.get('tags', '')
-                photo.tags.clear()
+                updated_photo.tags.clear()
                 if tags_text:
-                    tags_list = [tag.strip() for tag in tags_text.split(',') if tag.strip()]
-                    photo.tags.add(*tags_list)
-                
+                    tags_list = [
+                        tag.strip() for tag in tags_text.split(',')
+                        if tag.strip()
+                    ]
+                    updated_photo.tags.add(*tags_list)
+
                 messages.success(request, 'Фотография успешно обновлена!')
-                return redirect('photo_detail_slug', slug=photo.slug)
+                return redirect('photo_detail_slug', slug=updated_photo.slug)
             except Exception as e:
                 messages.error(request, f'Ошибка при обновлении: {str(e)}')
         else:
             messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
     else:
-        initial_data = {'tags': ', '.join([tag.name for tag in photo.tags.all()])}
+        initial_data = {
+            'tags': ', '.join([tag.name for tag in photo.tags.all()])
+        }
         form = PhotoForm(instance=photo, initial=initial_data)
 
     return render(request, 'photos/edit_photo.html', {
@@ -133,6 +162,9 @@ def delete_photo(request, slug):
 
     if request.method == 'POST':
         try:
+            # Удаляем файл из хранилища
+            if photo.image:
+                default_storage.delete(photo.image.name)
             photo.delete()
             messages.success(request, 'Фотография успешно удалена!')
             return redirect('photo_list')
@@ -144,7 +176,9 @@ def delete_photo(request, slug):
 
 def photos_by_year(request, year):
     photos = Photo.objects.filter(uploaded_at__year=year)
-    years = Photo.objects.dates('uploaded_at', 'year').values_list('uploaded_at__year', flat=True)
+    years = Photo.objects.dates('uploaded_at',
+                                'year').values_list('uploaded_at__year',
+                                                    flat=True)
     return render(request, 'photos/photos_by_year.html', {
         'photos': photos,
         'year': year,
@@ -164,7 +198,8 @@ def photos_by_category(request, category_slug):
 
 def home(request):
     recent_photos = Photo.custom.get_recent(5)
-    return render(request, 'photos/home.html', {'recent_photos': recent_photos})
+    return render(request, 'photos/home.html',
+                  {'recent_photos': recent_photos})
 
 
 def photo_list(request):
@@ -182,7 +217,9 @@ def photo_list(request):
 
     photos = photos.order_by(sort_by)
 
-    years = Photo.objects.dates('uploaded_at', 'year').values_list('uploaded_at__year', flat=True)
+    years = Photo.objects.dates('uploaded_at',
+                                'year').values_list('uploaded_at__year',
+                                                    flat=True)
     categories = Category.objects.all()
     popular_tags = Photo.tags.most_common()[:10]
 
@@ -190,26 +227,34 @@ def photo_list(request):
     for category_type, category_name in PhotoCategory.choices():
         count = Photo.objects.filter(category_type=category_type).count()
         category_counts.append(count)
-    
-    avg_photos_per_category = sum(category_counts) / len(category_counts) if category_counts else 0
+
+    avg_photos_per_category = sum(category_counts) / len(
+        category_counts) if category_counts else 0
 
     stats = {
-        'total_photos': Photo.objects.count(),
-        'avg_photos_per_category': avg_photos_per_category,
-        'latest_photo': Photo.objects.latest('uploaded_at') if Photo.objects.exists() else None,
-        'earliest_photo': Photo.objects.earliest('uploaded_at') if Photo.objects.exists() else None,
+        'total_photos':
+        Photo.objects.count(),
+        'avg_photos_per_category':
+        avg_photos_per_category,
+        'latest_photo':
+        Photo.objects.latest('uploaded_at')
+        if Photo.objects.exists() else None,
+        'earliest_photo':
+        Photo.objects.earliest('uploaded_at')
+        if Photo.objects.exists() else None,
     }
 
-    return render(request, 'photos/photo_list.html', {
-        'photos': photos,
-        'years': years,
-        'categories': categories,
-        'popular_tags': popular_tags,
-        'current_category': category_filter,
-        'current_tag': tag_filter,
-        'current_sort': sort_by,
-        'stats': stats
-    })
+    return render(
+        request, 'photos/photo_list.html', {
+            'photos': photos,
+            'years': years,
+            'categories': categories,
+            'popular_tags': popular_tags,
+            'current_category': category_filter,
+            'current_tag': tag_filter,
+            'current_sort': sort_by,
+            'stats': stats
+        })
 
 
 def photo_detail(request, pk=None, slug=None):
@@ -241,29 +286,32 @@ def photo_detail(request, pk=None, slug=None):
                 messages.success(request, 'Комментарий добавлен!')
                 return redirect('photo_detail_slug', slug=photo.slug)
             except Exception as e:
-                messages.error(request, f'Ошибка при добавлении комментария: {str(e)}')
+                messages.error(request,
+                               f'Ошибка при добавлении комментария: {str(e)}')
         else:
-            messages.error(request, 'Пожалуйста, исправьте ошибки в комментарии.')
+            messages.error(request,
+                           'Пожалуйста, исправьте ошибки в комментарии.')
     else:
         comment_form = CommentForm()
 
     comments = photo.comments.all()
 
-    return render(request, 'photos/photo_detail.html', {
-        'photo': photo,
-        'prev_photo': prev_photo,
-        'next_photo': next_photo,
-        'related_photos': related_photos,
-        'comments': comments,
-        'comment_form': comment_form
-    })
+    return render(
+        request, 'photos/photo_detail.html', {
+            'photo': photo,
+            'prev_photo': prev_photo,
+            'next_photo': next_photo,
+            'related_photos': related_photos,
+            'comments': comments,
+            'comment_form': comment_form
+        })
 
 
 def photos_by_tag(request, tag_slug):
     """Фотографии по тегу с поддержкой кириллицы"""
     from taggit.models import Tag
     from django.utils.text import slugify
-    
+
     try:
         # Сначала пробуем найти по точному slug
         tag = Tag.objects.get(slug=tag_slug)
@@ -275,7 +323,8 @@ def photos_by_tag(request, tag_slug):
             # Преобразуем slug обратно в возможное имя
             possible_name = tag_slug.replace('-', ' ')
             tag = Tag.objects.get(name__iexact=possible_name)
-            photos = Photo.objects.filter(tags__name__iexact=possible_name).distinct()
+            photos = Photo.objects.filter(
+                tags__name__iexact=possible_name).distinct()
             tag_name = tag.name
         except Tag.DoesNotExist:
             # Если тег не найден вообще
@@ -299,9 +348,14 @@ def tag_list(request):
         photo_count=Count('taggit_taggeditem_items')).order_by('-photo_count')
 
     stats = {
-        'total_tags': tags.count(),
-        'max_photos': tags.aggregate(Max('photo_count'))['photo_count__max'] if tags.exists() else 0,
-        'avg_photos': tags.aggregate(Avg('photo_count'))['photo_count__avg'] if tags.exists() else 0,
+        'total_tags':
+        tags.count(),
+        'max_photos':
+        tags.aggregate(Max('photo_count'))['photo_count__max']
+        if tags.exists() else 0,
+        'avg_photos':
+        tags.aggregate(Avg('photo_count'))['photo_count__avg']
+        if tags.exists() else 0,
     }
 
     return render(request, 'photos/tag_list.html', {
@@ -315,19 +369,19 @@ def stats_view(request):
 
     categories_with_counts = []
     categories_with_percentages = []
-    
+
     for category_type, category_name in PhotoCategory.choices():
         count = Photo.objects.filter(category_type=category_type).count()
         categories_with_counts.append({
             'name': category_name,
             'photo_count': count
         })
-        
+
         if total_photos > 0:
             percentage = (count * 100.0) / total_photos
         else:
             percentage = 0
-            
+
         categories_with_percentages.append({
             'name': category_name,
             'photo_count': count,
@@ -335,21 +389,17 @@ def stats_view(request):
         })
 
     photos_per_year = Photo.objects.annotate(
-        year=ExtractYear('uploaded_at')
-    ).values('year').annotate(
-        count=Count('id'),
-        percentage=ExpressionWrapper(
-            Count('id') * Value(100.0) / Value(total_photos) if total_photos > 0 else Value(0.0),
-            output_field=FloatField()
-        )
-    ).order_by('year')
+        year=ExtractYear('uploaded_at')).values('year').annotate(
+            count=Count('id'),
+            percentage=ExpressionWrapper(
+                Count('id') * Value(100.0) /
+                Value(total_photos) if total_photos > 0 else Value(0.0),
+                output_field=FloatField())).order_by('year')
 
     photos_with_age = Photo.objects.annotate(
-        age=ExpressionWrapper(
-            Value(date.today().year) - ExtractYear('uploaded_at'),
-            output_field=IntegerField()
-        )
-    )
+        age=ExpressionWrapper(Value(date.today().year) -
+                              ExtractYear('uploaded_at'),
+                              output_field=IntegerField()))
 
     latest_photo = Photo.objects.latest(
         'uploaded_at') if Photo.objects.exists() else None
