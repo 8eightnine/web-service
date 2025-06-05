@@ -1,0 +1,64 @@
+{% if page_obj.has_other_pages %}
+<nav class="pagination-nav" aria-label="Pagination Navigation">
+    <ul class="pagination">
+        <!-- Previous page link -->
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+        {% else %}
+            <li class="page-item disabled">
+                <span class="page-link" aria-hidden="true">&laquo;</span>
+            </li>
+        {% endif %}
+
+        <!-- Page numbers -->
+        {% for p in paginator.page_range %}
+            {% if page_obj.number == p %}
+                <!-- Current page, no link -->
+                <li class="page-item active">
+                    <span class="page-link page-num-selected">{{ p }}</span>
+                </li>
+            {% elif p >= page_obj.number|add:-2 and p <= page_obj.number|add:2 %}
+                <!-- Limit displayed numbers to current page ±2 -->
+                <li class="page-item">
+                    <a class="page-link page-num" href="?page={{ p }}">{{ p }}</a>
+                </li>
+            {% elif p == 1 or p == paginator.num_pages %}
+                <!-- Always show first and last page -->
+                <li class="page-item">
+                    <a class="page-link page-num" href="?page={{ p }}">{{ p }}</a>
+                </li>
+            {% elif p == page_obj.number|add:-3 or p == page_obj.number|add:3 %}
+                <!-- Show ellipsis -->
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        <!-- Next page link -->
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        {% else %}
+            <li class="page-item disabled">
+                <span class="page-link" aria-hidden="true">&raquo;</span>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+
+<!-- Pagination info -->
+<div class="pagination-info">
+    <small class="text-muted">
+        Показано {{ page_obj.start_index }}-{{ page_obj.end_index }} из {{ paginator.count }} фотографий
+        (страница {{ page_obj.number }} из {{ paginator.num_pages }})
+    </small>
+</div>
+{% endif %}

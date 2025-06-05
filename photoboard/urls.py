@@ -6,11 +6,13 @@ from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.home_page, name='home'),  # Главная страница
+    path('', views.HomePageView.as_view(), name='home'),  # CBV for main page
     path('photos/', include('photos.urls')),
-    path('login/', views.login_view, name='login'),  # Страница входа
-    path('register/', views.register_view, name='register'),  # Страница регистрации
-    path('logout/', views.logout_view, name='logout'),  # Заменяем LogoutView на нашу функцию
+    path('login/', views.LoginView.as_view(), name='login'),  # CBV for login
+    path('register/', views.RegisterView.as_view(),
+         name='register'),  # CBV for registration
+    path('logout/', views.LogoutView.as_view(),
+         name='logout'),  # CBV for logout
 ]
 
 if settings.DEBUG:
