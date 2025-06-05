@@ -41,11 +41,10 @@
     --spacing-xl: 2rem;
     --spacing-xxl: 3rem;
     
-    /* Размеры карточек */
-    --card-min-width: 280px;
-    --card-max-width: 350px;
-    --card-image-height: 220px;
-    --card-content-min-height: 180px;
+    /* Размеры карточек - ОБНОВЛЕНО для квадратной формы */
+    --card-size: 320px; /* Основной размер карточки */
+    --card-image-height: 200px; /* Высота изображения */
+    --card-content-height: 120px; /* Фиксированная высота контента */
     
     /* Шрифты */
     --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -140,28 +139,29 @@ main {
     padding: 0 var(--spacing-xl);
 }
 
-/* ===== СЕТКА ФОТОГРАФИЙ (ГЛАВНАЯ ОСОБЕННОСТЬ) ===== */
+/* ===== СЕТКА ФОТОГРАФИЙ (КВАДРАТНЫЕ КАРТОЧКИ) ===== */
 .photo-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(var(--card-min-width), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(var(--card-size), 1fr));
     gap: var(--spacing-xl);
     padding: var(--spacing-xl) 0;
     max-width: 1200px;
     margin: 0 auto;
+    justify-items: center;
 }
 
-/* ===== КАРТОЧКИ ФОТОГРАФИЙ (ОДИНАКОВЫЙ РАЗМЕР) ===== */
+/* ===== КАРТОЧКИ ФОТОГРАФИЙ (КВАДРАТНАЯ ФОРМА) ===== */
 .photo-card {
     background: var(--white);
     border-radius: var(--border-radius);
     box-shadow: 0 2px 8px var(--shadow-light);
     transition: transform var(--transition-normal), box-shadow var(--transition-normal);
-    height: 100%;
+    width: var(--card-size);
+    height: var(--card-size);
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    max-width: var(--card-max-width);
-    margin: 0 auto;
+    position: relative;
 }
 
 .photo-card:hover {
@@ -169,35 +169,59 @@ main {
     box-shadow: 0 8px 25px var(--shadow-medium);
 }
 
-/* Изображение в карточке - фиксированная высота */
-.photo-card img {
-    width: 100%;
-    height: 100%; /* Фиксированная высота для контейнера */
-    object-fit: cover; /* Изображение заполняет контейнер, сохраняя соотношение сторон */
-    border-radius: 0; /* Или другой радиус, если нужно */
-}
-
-/* Контент карточки - фиксированная минимальная высота */
-.photo-card-content {
-    flex-grow: 1;
+/* Ссылка карточки - занимает всю карточку */
+.photo-card-link {
     display: flex;
     flex-direction: column;
-    padding: var(--spacing-lg);
-    min-height: var(--card-content-min-height);
+    height: 100%;
+    text-decoration: none;
+    color: inherit;
 }
 
-/* Заголовок карточки */
+/* Контейнер изображения - фиксированная высота */
+.photo-card-image {
+    width: 100%;
+    height: var(--card-image-height);
+    overflow: hidden;
+    position: relative;
+    background-color: var(--light-gray);
+}
+
+/* Изображение в карточке - заполняет контейнер */
+.photo-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform var(--transition-normal);
+}
+
+.photo-card:hover img {
+    transform: scale(1.05);
+}
+
+/* Контент карточки - фиксированная высота */
+.photo-card-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: var(--spacing-md);
+    height: var(--card-content-height);
+    justify-content: space-between;
+}
+
+/* Заголовок карточки - ограниченная высота */
 .photo-card h2 {
-    margin-bottom: var(--spacing-md);
-    font-size: var(--font-size-lg);
+    margin: 0 0 var(--spacing-xs) 0;
+    font-size: var(--font-size-base);
     font-weight: 600;
-    height: 3em; /* Фиксированная высота для заголовков */
+    height: 2.4em;
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    line-height: 1.5;
+    line-height: 1.2;
 }
 
 .photo-card h2 a {
@@ -210,34 +234,33 @@ main {
     color: var(--primary-color);
 }
 
-/* Описание карточки */
+/* Описание карточки - ограниченная высота */
 .photo-card-description {
-    flex-grow: 1;
-    margin: var(--spacing-sm) 0 var(--spacing-md);
+    margin: var(--spacing-xs) 0;
     color: var(--medium-gray);
-    font-size: var(--font-size-sm);
-    line-height: 1.5;
-    height: 4.5em; /* Фиксированная высота для описаний */
+    font-size: var(--font-size-xs);
+    line-height: 1.3;
+    height: 2.6em;
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
 }
 
-/* ===== ТЕГИ И КАТЕГОРИИ (ЦВЕТОВОЕ ВЫДЕЛЕНИЕ) ===== */
+/* ===== ТЕГИ И КАТЕГОРИИ (КОМПАКТНЫЕ) ===== */
 .photo-meta {
     margin-top: auto;
-    padding-top: var(--spacing-md);
-    border-top: 1px solid #f0f0f0;
 }
 
 .tags-container {
-    margin-bottom: var(--spacing-sm);
+    margin-bottom: var(--spacing-xs);
     display: flex;
     flex-wrap: wrap;
-    gap: var(--spacing-xs);
+    gap: 2px;
     align-items: center;
+    max-height: 1.5em;
+    overflow: hidden;
 }
 
 .tag {
@@ -245,13 +268,14 @@ main {
     background-color: var(--tag-bg);
     color: var(--tag-color);
     border: 1px solid var(--tag-border);
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border-radius: 12px;
-    font-size: var(--font-size-xs);
+    padding: 1px var(--spacing-xs);
+    border-radius: 8px;
+    font-size: 0.65rem;
     font-weight: 500;
     text-decoration: none;
     transition: all var(--transition-fast);
     white-space: nowrap;
+    line-height: 1.2;
 }
 
 .tag:hover {
@@ -263,7 +287,7 @@ main {
 .no-tags {
     color: var(--medium-gray);
     font-style: italic;
-    font-size: var(--font-size-xs);
+    font-size: 0.65rem;
 }
 
 .category-badge {
@@ -271,14 +295,14 @@ main {
     background-color: var(--category-bg);
     color: var(--category-color);
     border: 1px solid var(--category-border);
-    padding: var(--spacing-xs) var(--spacing-sm);
+    padding: 1px var(--spacing-xs);
     border-radius: var(--border-radius-small);
-    font-size: var(--font-size-xs);
+    font-size: 0.65rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
     transition: all var(--transition-normal);
-    margin-right: var(--spacing-sm);
+    line-height: 1.2;
 }
 
 .category-badge:hover {
@@ -287,13 +311,13 @@ main {
     transform: translateY(-1px);
 }
 
-/* Автор */
+/* Автор и дата - компактно */
 .author-info {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: var(--spacing-sm);
-    font-size: var(--font-size-xs);
+    margin-top: var(--spacing-xs);
+    font-size: 0.65rem;
 }
 
 .author-name {
@@ -306,7 +330,6 @@ main {
     font-style: italic;
 }
 
-/* Дата */
 .upload-time {
     color: var(--medium-gray);
     font-style: italic;
@@ -1117,7 +1140,7 @@ footer {
     text-align: center;
     padding: var(--spacing-xxl);
     color: var(--medium-gray);
-    grid-column: 1 / -1; /* Занимает всю ширину сетки */
+    grid-column: 1 / -1;
 }
 
 .empty-state-icon {
@@ -1140,21 +1163,27 @@ footer {
 
 /* ===== АДАПТИВНОСТЬ ===== */
 @media (max-width: 1200px) {
+    :root {
+        --card-size: 280px;
+        --card-image-height: 180px;
+        --card-content-height: 100px;
+    }
+    
     .container {
         padding: 0 var(--spacing-lg);
     }
     
     .photo-grid {
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(var(--card-size), 1fr));
         gap: var(--spacing-lg);
     }
 }
 
 @media (max-width: 768px) {
     :root {
-        --card-min-width: 250px;
-        --card-image-height: 200px;
-        --card-content-min-height: 160px;
+        --card-size: 250px;
+        --card-image-height: 160px;
+        --card-content-height: 90px;
     }
     
     .container {
@@ -1167,13 +1196,9 @@ footer {
     }
     
     .photo-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(auto-fill, minmax(var(--card-size), 1fr));
         gap: var(--spacing-md);
         padding: var(--spacing-md) 0;
-    }
-    
-    .photo-card {
-        max-width: 100%;
     }
     
     .upload-container {
@@ -1229,6 +1254,9 @@ footer {
 
 @media (max-width: 480px) {
     :root {
+        --card-size: 220px;
+        --card-image-height: 140px;
+        --card-content-height: 80px;
         --spacing-md: 0.75rem;
         --spacing-lg: 1rem;
         --spacing-xl: 1.25rem;
@@ -1239,6 +1267,17 @@ footer {
         padding: 0 var(--spacing-sm);
     }
     
+    .photo-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+    
+    .photo-card {
+        width: 100%;
+        max-width: var(--card-size);
+        margin: 0 auto;
+    }
+    
     .photo-detail-card,
     .form-container,
     .auth-form {
@@ -1247,12 +1286,12 @@ footer {
     }
     
     .photo-card h2 {
-        font-size: var(--font-size-base);
-        height: 2.5em;
+        font-size: var(--font-size-sm);
+        height: 2em;
     }
     
     .photo-card-description {
-        height: 3.5em;
+        height: 2.4em;
         -webkit-line-clamp: 2;
     }
     
@@ -1381,4 +1420,3 @@ footer {
     outline: 3px solid var(--primary-color);
     outline-offset: 2px;
 }
-

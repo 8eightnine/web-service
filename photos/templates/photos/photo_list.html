@@ -45,44 +45,45 @@
                 </form>
             </div>
 
-            <!-- Photos table -->
+            <!-- Photos grid -->
             <div class="photos-table-container">
                 {% if photos %}
                     <div class="photo-grid">
                         {% for photo in photos %}
                             <div class="photo-card">
                                 <a href="{% url 'photo_detail_slug' photo.slug %}" class="photo-card-link">
-                                    <img src="{{ photo.image.url }}" alt="{{ photo.title }}">
+                                    <div class="photo-card-image">
+                                        <img src="{{ photo.image.url }}" alt="{{ photo.title }}" loading="lazy">
+                                    </div>
                                     <div class="photo-card-content">
-                                        <h2><a href="{% url 'photo_detail_slug' photo.slug %}">{{ photo.title }}</a></h2>
-                                        <p class="photo-card-description">{{ photo.description|truncatechars:100 }}</p>
+                                        <h2>{{ photo.title }}</h2>
+                                        <p class="photo-card-description">{{ photo.description|truncatechars:80 }}</p>
                                         <div class="photo-meta">
                                             <div class="tags-container">
-                                                {% for tag in photo.tags.all %}
-                                                    <a href="{% url 'photos_by_tag' tag.slug %}" class="tag">{{ tag.name }}</a>
+                                                {% for tag in photo.tags.all|slice:":3" %}
+                                                    <span class="tag">{{ tag.name }}</span>
                                                 {% empty %}
                                                     <span class="no-tags">Без тегов</span>
                                                 {% endfor %}
+                                                {% if photo.tags.count > 3 %}
+                                                    <span class="tag">+{{ photo.tags.count|add:"-3" }}</span>
+                                                {% endif %}
                                             </div>
-                                            <span class="category-badge">{{ photo.get_category_type_display }}</span>
+                                            <div class="author-info">
+                                                <span class="category-badge">{{ photo.get_category_type_display }}</span>
+                                                <span class="upload-time">{{ photo.uploaded_at|date:"d.m.Y" }}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </a>
                             </div>
-                        {% empty %}
-                            <div class="empty-state">
-                                <i class="fas fa-images empty-state-icon"></i>  <!--  Иконка, замените на свою, если нужно -->
-                                <h3>Фотографии не найдены</h3>
-                                <p>Попробуйте изменить фильтры или <a href="{% url 'upload_photo' %}">загрузить первую фотографию</a>.</p>
-                            </div>
                         {% endfor %}
                     </div>
                 {% else %}
-                    <div class="no-photos-message">
-                        <div class="alert alert-info">
-                            <h4>Фотографии не найдены</h4>
-                            <p>Попробуйте изменить фильтры или <a href="{% url 'upload_photo' %}">загрузить первую фотографию</a>.</p>
-                        </div>
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📷</div>
+                        <h3>Фотографии не найдены</h3>
+                        <p>Попробуйте изменить фильтры или <a href="{% url 'upload_photo' %}">загрузить первую фотографию</a>.</p>
                     </div>
                 {% endif %}
             </div>

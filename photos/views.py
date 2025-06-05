@@ -254,7 +254,6 @@ class PhotoListView(DataMixin, ListView):
     model = Photo
     template_name = 'photos/photo_list.html'
     context_object_name = 'photos'
-    paginate_by = 6
     title_page = 'Все фотографии'
 
     def get_queryset(self):
