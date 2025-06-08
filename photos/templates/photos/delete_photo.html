@@ -4,17 +4,47 @@
 
 {% block content %}
 <div class="container">
-    <h1>Удаление фотографии</h1>
-    
-    <div class="alert alert-warning">
-        <p>Вы уверены, что хотите удалить фотографию "{{ photo.title }}"?</p>
-        <p>Это действие нельзя будет отменить.</p>
+    <div class="form-container">
+        <h1>Удаление фотографии</h1>
+        
+        <div class="alert alert-warning">
+            <p>Вы уверены, что хотите удалить фотографию "{{ photo.title }}"?</p>
+            <p>Это действие нельзя будет отменить.</p>
+        </div>
+        
+        <div class="photo-preview">
+            <img src="{{ photo.image.url }}" alt="{{ photo.title }}" style="max-width: 300px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+        </div>
+        
+        <div class="photo-info" style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
+            <p><strong>Название:</strong> {{ photo.title }}</p>
+            <p><strong>Описание:</strong> {{ photo.description|truncatechars:100 }}</p>
+            <p><strong>Категория:</strong> {{ photo.get_category_type_display }}</p>
+            <p><strong>Дата загрузки:</strong> {{ photo.uploaded_at|date:"d.m.Y H:i" }}</p>
+            {% if photo.tags.exists %}
+                <p><strong>Теги:</strong> 
+                    {% for tag in photo.tags.all %}
+                        <span class="tag">{{ tag.name }}</span>{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </p>
+            {% endif %}
+        </div>
+        
+        <form method="post" style="text-align: center;">
+            {% csrf_token %}
+            <div style="margin-top: 30px;">
+                <button type="submit" class="btn btn-danger" style="margin-right: 10px;">
+                    Да, удалить фотографию
+                </button>
+                <a href="{% url 'photo_detail_slug' photo.slug %}" class="btn btn-secondary">
+                    Отмена
+                </a>
+            </div>
+        </form>
+        
+        <div class="back-link" style="margin-top: 20px;">
+            <a href="{% url 'photo_list' %}">Назад к списку фотографий</a>
+        </div>
     </div>
-    
-    <div class="photo-preview">
-        <img src="{{ photo.image.url }}" alt="{{ photo.title }}" style="max-width: 300px;">
-    </div>
-    
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger">Да, удалить</button
+</div>
+{% endblock %}

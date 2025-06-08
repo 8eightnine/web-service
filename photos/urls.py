@@ -31,6 +31,8 @@ urlpatterns = [
     path('redirect/',
          views.RedirectToHomeView.as_view(),
          name='redirect_to_home'),
+    # Simple View
+    path('simple/', views.SimplePhotoView.as_view(), name='simple_photo_view'),
     # Upload views
     path('upload/', views.UploadPhotoView.as_view(), name='upload_photo'),
     path('upload-non-model/',
