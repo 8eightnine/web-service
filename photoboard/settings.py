@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'photos.apps.PhotosConfig',
-    'users',
+    'users.apps.UsersConfig',
     'taggit',
 ]
 
@@ -139,3 +139,51 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Настройки для аутентификации
+LOGIN_URL = 'users:login'
+LOGIN_REDIRECT_URL = 'photo_list'
+LOGOUT_REDIRECT_URL = 'users:login'
+
+# Бэкенды аутентификации
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'users.authentication.EmailAuthBackend',
+]
+
+# Настройки email
+    # Для разработки - вывод в консоль
+    #EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# Для отправки писем на реальный email
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.yandex.ru"  # Или smtp.yandex.ru для Yandex
+EMAIL_PORT = 465
+EMAIL_HOST_USER = "k3k15@ya.ru"
+EMAIL_HOST_PASSWORD = "tvmmkogoeyfnmctx"
+EMAIL_USE_SSL = True
+EMAIL_USE_TLS = False
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# URL сайта для email шаблонов
+SITE_URL = "a-buzmakov.ru"
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': 'email_debug.log',
+        },
+    },
+    'loggers': {
+        'django.core.mail': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}

@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if is_own_profile %}
+        Мой профиль
+    {% else %}
+        Профиль {{ profile_user.get_full_name|default:profile_user.username }}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <!-- Карточка профиля -->
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="profile-avatar mb-3">
+                        {% if profile.avatar %}
+                            <img src="{{ profile.avatar.url }}" alt="Аватар" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                        {% else %}
+                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center mx-auto" style="width: 150px; height: 150px;">
+                                <i class="fas fa-user fa-4x text-white"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <h4 class="card-title">
+                        {{ profile_user.get_full_name|default:profile_user.username }}
+                    </h4>
+                    
+                    {% if profile_user.get_full_name %}
+                        <p class="text-muted">@{{ profile_user.username }}</p>
+                    {% endif %}
+                    
+                    {% if profile.bio %}
+                        <p class="card-text">{{ profile.bio }}</p>
+                    {% else %}
+                        <p class="text-muted">
+                            {% if is_own_profile %}
+                                Добавьте описание в настройках профиля
+                            {% else %}
+                                Пользователь не добавил описание
+                            {% endif %}
+                        </p>
+                    {% endif %}
+                    
+                    <div class="profile-stats mt-3">
+                        <div class="row text-center">
+                            <div class="col">
+                                <h5 class="mb-0">{{ total_photos }}</h5>
+                                <small class="text-muted">Фотографий</small>
+                            </div>
+                            <div class="col">
+                                <h5 class="mb-0">{{ profile.created_at|date:"M Y" }}</h5>
+                                <small class="text-muted">Регистрация</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if is_own_profile %}
+                        <div class="mt-3">
+                            <a href="{% url 'users:edit_profile' %}" class="btn btn-primary">
+                                <i class="fas fa-edit"></i> Редактировать профиль
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Дополнительная информация -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-info-circle"></i> Информация</h6>
+                </div>
+                <div class="card-body">
+                    <div class="info-item mb-2">
+                        <strong>Email:</strong>
+                        {% if is_own_profile %}
+                            {{ profile_user.email|default:"Не указан" }}
+                        {% else %}
+                            <span class="text-muted">Скрыт</span>
+                        {% endif %}
+                    </div>
+                    <div class="info-item mb-2">
+                        <strong>Дата регистрации:</strong>
+                        {{ profile_user.date_joined|date:"d.m.Y" }}
+                    </div>
+                    <div class="info-item">
+                        <strong>Последняя активность:</strong>
+                        {{ profile_user.last_login|date:"d.m.Y H:i"|default:"Никогда" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <!-- Фотографии пользователя -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-images"></i> 
+                        {% if is_own_profile %}
+                            Мои фотографии
+                        {% else %}
+                            Фотографии пользователя
+                        {% endif %}
+                        <span class="badge bg-secondary">{{ total_photos }}</span>
+                    </h5>
+                    {% if is_own_profile %}
+                        <a href="{% url 'upload_photo' %}" class="btn btn-success btn-sm">
+                            <i class="fas fa-plus"></i> Добавить фото
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if user_photos %}
+                        <div class="row">
+                            {% for photo in user_photos %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100">
+                                        <a href="{% url 'photo_detail_slug' photo.slug %}">
+                                            <img src="{{ photo.image.url }}" class="card-img-top" alt="{{ photo.title }}" style="height: 200px; object-fit: cover;">
+                                        </a>
+                                        <div class="card-body p-2">
+                                            <h6 class="card-title mb-1">
+                                                <a href="{% url 'photo_detail_slug' photo.slug %}" class="text-decoration-none">
+                                                    {{ photo.title|truncatechars:30 }}
+                                                </a>
+                                            </h6>
+                                            <small class="text-muted">
+                                                {{ photo.uploaded_at|date:"d.m.Y" }}
+                                            </small>
+                                            
+                                            {% if is_own_profile %}
+                                                <div class="mt-2">
+                                                    <a href="{% url 'edit_photo' photo.slug %}" class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <a href="{% url 'delete_photo' photo.slug %}" class="btn btn-sm btn-outline-danger" 
+                                                       onclick="return confirm('Удалить фотографию?')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </a>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        {% if total_photos > 6 %}
+                            <div class="text-center mt-3">
+                                <a href="{% url 'photo_list' %}?user={{ profile_user.username }}" class="btn btn-outline-primary">
+                                    Показать все фотографии ({{ total_photos }})
+                                </a>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-camera fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">
+                                {% if is_own_profile %}
+                                    У вас пока нет фотографий
+                                {% else %}
+                                    У пользователя пока нет фотографий
+                                {% endif %}
+                            </h5>
+                            {% if is_own_profile %}
+                                <a href="{% url 'upload_photo' %}" class="btn btn-primary mt-2">
+                                    <i class="fas fa-plus"></i> Загрузить первую фотографию
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

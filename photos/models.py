@@ -137,6 +137,22 @@ class Photo(models.Model):
                 common_tags=Count('tags', filter=Q(
                     tags__name__in=tag_list))).order_by('-common_tags')[:5]
 
+    def get_uploader_display(self):
+        """Возвращает имя загрузившего или 'Анонимный пользователь'"""
+        if self.uploaded_by:
+            # Проверяем, есть ли у пользователя полное имя
+            full_name = self.uploaded_by.get_full_name()
+            if full_name:
+                return full_name
+            return self.uploaded_by.username
+        return "Анонимный пользователь"
+
+    def get_uploader_profile_url(self):
+        """Возвращает URL профиля пользователя"""
+        if self.uploaded_by:
+            return f"/users/profile/{self.uploaded_by.username}/"
+        return None
+
     def __str__(self):
         return self.title
 

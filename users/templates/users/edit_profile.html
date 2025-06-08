@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block title %}Редактирование профиля{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-edit"></i> Редактирование профиля
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Основная информация</h5>
+                                
+                                <!-- Имя -->
+                                <div class="form-group">
+                                    <label for="{{ user_form.first_name.id_for_label }}" class="form-label">
+                                        <i class="fas fa-user"></i> Имя
+                                    </label>
+                                    {{ user_form.first_name }}
+                                    {% if user_form.first_name.errors %}
+                                        <div class="text-danger">{{ user_form.first_name.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Фамилия -->
+                                <div class="form-group">
+                                    <label for="{{ user_form.last_name.id_for_label }}" class="form-label">
+                                        <i class="fas fa-user"></i> Фамилия
+                                    </label>
+                                    {{ user_form.last_name }}
+                                    {% if user_form.last_name.errors %}
+                                        <div class="text-danger">{{ user_form.last_name.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Email -->
+                                <div class="form-group">
+                                    <label for="{{ user_form.email.id_for_label }}" class="form-label">
+                                        <i class="fas fa-envelope"></i> Email адрес
+                                    </label>
+                                    {{ user_form.email }}
+                                    {% if user_form.email.errors %}
+                                        <div class="text-danger">{{ user_form.email.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Дополнительная информация</h5>
+                                
+                                <!-- Аватар -->
+                                <div class="form-group">
+                                    <label for="{{ profile_form.avatar.id_for_label }}" class="form-label">
+                                        <i class="fas fa-image"></i> Аватар
+                                    </label>
+                                    
+                                    {% if user.profile.avatar %}
+                                        <div class="current-avatar mb-2">
+                                            <img src="{{ user.profile.avatar.url }}" alt="Текущий аватар" 
+                                                 class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                                            <p class="small text-muted mt-1">Текущий аватар</p>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {{ profile_form.avatar }}
+                                    {% if profile_form.avatar.errors %}
+                                        <div class="text-danger">{{ profile_form.avatar.errors }}</div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        Рекомендуемый размер: 300x300 пикселей. Максимальный размер файла: 5MB.
+                                    </div>
+                                </div>
+                                
+                                <!-- Биография -->
+                                <div class="form-group">
+                                    <label for="{{ profile_form.bio.id_for_label }}" class="form-label">
+                                        <i class="fas fa-pen"></i> О себе
+                                    </label>
+                                    {{ profile_form.bio }}
+                                    {% if profile_form.bio.errors %}
+                                        <div class="text-danger">{{ profile_form.bio.errors }}</div>
+                                    {% endif %}
+                                    <div class="form-text">
+                                        Расскажите о себе (максимум 500 символов)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'users:profile_view' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Отмена
+                            </a>
+                            <div>
+                                <a href="{% url 'users:password_change' %}" class="btn btn-outline-warning me-2">
+                                    <i class="fas fa-key"></i> Сменить пароль
+                                </a>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save"></i> Сохранить изменения
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Предпросмотр загружаемого аватара
+    const avatarInput = document.querySelector('input[type="file"][name="avatar"]');
+    if (avatarInput) {
+        avatarInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Создаем или обновляем превью
+                    let preview = document.querySelector('.avatar-preview');
+                    if (!preview) {
+                        preview = document.createElement('div');
+                        preview.className = 'avatar-preview mt-2';
+                        avatarInput.parentNode.appendChild(preview);
+                    }
+                    
+                    preview.innerHTML = `
+                        <img src="${e.target.result}" alt="Предпросмотр" 
+                             class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                        <p class="small text-muted mt-1">Предпросмотр нового аватара</p>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    
+    // Счетчик символов для биографии
+    const bioTextarea = document.querySelector('textarea[name="bio"]');
+    if (bioTextarea) {
+        const maxLength = 500;
+        const counter = document.createElement('div');
+        counter.className = 'form-text text-end';
+        bioTextarea.parentNode.appendChild(counter);
+        
+        function updateCounter() {
+            const remaining = maxLength - bioTextarea.value.length;
+            counter.textContent = `${bioTextarea.value.length}/${maxLength} символов`;
+            
+            if (remaining < 50) {
+                counter.className = 'form-text text-end text-warning';
+            } else if (remaining < 0) {
+                counter.className = 'form-text text-end text-danger';
+            } else {
+                counter.className = 'form-text text-end text-muted';
+            }
+        }
+        
+        bioTextarea.addEventListener('input', updateCounter);
+        updateCounter(); // Инициализация
+    }
+});
+</script>
+{% endblock %}

@@ -2057,3 +2057,273 @@ footer {
     0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
     100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
 }
+
+/* Простое dropdown меню без Bootstrap */
+.user-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.user-menu-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    background: none;
+    border: none;
+    color: var(--white);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius-small);
+    cursor: pointer;
+    transition: background-color var(--transition-normal);
+    font-size: var(--font-size-base);
+}
+
+.user-menu-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.user-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: var(--white);
+    min-width: 200px;
+    box-shadow: 0 4px 12px var(--shadow-medium);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-sm) 0;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all var(--transition-normal);
+}
+
+.user-dropdown:hover .user-dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.user-dropdown-menu a {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    color: var(--dark-color);
+    text-decoration: none;
+    transition: background-color var(--transition-normal);
+}
+
+.user-dropdown-menu a:hover {
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+
+.user-dropdown-menu .dropdown-divider {
+    height: 1px;
+    background-color: var(--border-color);
+    margin: var(--spacing-sm) 0;
+}
+
+/* Добавляем в конец файла стилей */
+
+/* ===== СТИЛИ ДЛЯ АУТЕНТИФИКАЦИИ ===== */
+.auth-form {
+    background: var(--white);
+    padding: var(--spacing-xxl);
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 12px var(--shadow-light);
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.auth-buttons {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+/* Маленький аватар в навигации */
+.user-avatar-small {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: var(--spacing-xs);
+}
+
+/* ===== СТИЛИ ДЛЯ ПРОФИЛЯ ===== */
+.profile-avatar img,
+.profile-avatar .rounded-circle {
+    border: 4px solid var(--white);
+    box-shadow: 0 4px 12px var(--shadow-light);
+}
+
+.profile-stats {
+    background-color: var(--light-gray);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius);
+}
+
+.info-item {
+    padding: var(--spacing-xs) 0;
+    border-bottom: 1px solid #eee;
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+/* ===== СТИЛИ ДЛЯ ФОРМ ===== */
+.form-group {
+    margin-bottom: var(--spacing-lg);
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--dark-color);
+    margin-bottom: var(--spacing-sm);
+}
+
+.form-control {
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius-small);
+    padding: var(--spacing-sm) var(--spacing-md);
+    transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    outline: none;
+}
+
+.form-control.is-valid {
+    border-color: var(--success-color);
+}
+
+.form-control.is-invalid {
+    border-color: var(--danger-color);
+}
+
+.invalid-feedback {
+    color: var(--danger-color);
+    font-size: var(--font-size-sm);
+    margin-top: var(--spacing-xs);
+}
+
+.form-text {
+    color: var(--medium-gray);
+    font-size: var(--font-size-sm);
+    margin-top: var(--spacing-xs);
+}
+
+/* ===== ВАЛИДАЦИЯ ФОРМ ===== */
+.password-strength {
+    margin-top: var(--spacing-sm);
+}
+
+.password-strength ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.password-strength li {
+    padding: var(--spacing-xs) 0;
+    font-size: var(--font-size-sm);
+}
+
+.password-strength li.valid {
+    color: var(--success-color);
+}
+
+.password-strength li.invalid {
+    color: var(--danger-color);
+}
+
+.password-strength li::before {
+    content: "✗ ";
+    color: var(--danger-color);
+    font-weight: bold;
+}
+
+.password-strength li.valid::before {
+    content: "✓ ";
+    color: var(--success-color);
+}
+
+/* ===== КАРТОЧКИ ПРОФИЛЯ ===== */
+.profile-card {
+    background: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 8px var(--shadow-light);
+    overflow: hidden;
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.profile-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow-medium);
+}
+
+/* ===== АДАПТИВНОСТЬ ДЛЯ МОБИЛЬНЫХ ===== */
+@media (max-width: 768px) {
+    .auth-form {
+        padding: var(--spacing-lg);
+        margin: var(--spacing-md);
+    }
+    
+    .auth-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .auth-buttons .btn {
+        width: 100%;
+        margin-bottom: var(--spacing-xs);
+    }
+    
+    .user-dropdown-menu {
+        position: static;
+        width: 100%;
+        margin-top: var(--spacing-sm);
+        box-shadow: none;
+        border: 1px solid var(--border-color);
+    }
+    
+    .profile-stats .row {
+        text-align: center;
+    }
+    
+    .profile-stats .col {
+        margin-bottom: var(--spacing-sm);
+    }
+}
+
+/* ===== АНИМАЦИИ ДЛЯ ФОРМ ===== */
+.form-group {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== УЛУЧШЕНИЯ ДЛЯ ДОСТУПНОСТИ ===== */
+.form-control:focus {
+    outline: 3px solid rgba(0, 123, 255, 0.25);
+    outline-offset: 2px;
+}
+
+.btn:focus {
+    outline: 3px solid rgba(0, 123, 255, 0.25);
+    outline-offset: 2px;
+}

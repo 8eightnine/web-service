@@ -72,7 +72,6 @@ class UploadPhotoView(DataMixin, CreateView):
     def form_valid(self, form):
         try:
             photo = form.save(commit=False)
-            # Убираем привязку к пользователю, так как система пользователей не используется
             if self.request.user.is_authenticated:
                 photo.uploaded_by = self.request.user
             photo.save()
@@ -146,7 +145,7 @@ class UploadPhotoNonModelView(DataMixin, FormView):
         return super().form_invalid(form)
 
 
-class EditPhotoView(DataMixin, UpdateView):
+class EditPhotoView(DataMixin, LoginRequiredMixin, UpdateView):
     """Edit existing photo using UpdateView"""
     model = Photo
     form_class = PhotoForm
@@ -159,9 +158,7 @@ class EditPhotoView(DataMixin, UpdateView):
                             kwargs={'slug': self.object.slug})
 
     def get_object(self, queryset=None):
-        """Get photo object without user permission checks since user system is disabled"""
         obj = super().get_object(queryset)
-        # Убираем проверку прав пользователя, так как система пользователей не используется
         if obj.uploaded_by != self.request.user and not self.request.user.is_staff:
             messages.error(
                 self.request,
@@ -653,11 +650,10 @@ def edit_photo(request, slug):
     """Function-based view для редактирования (оставлен для совместимости)"""
     photo = get_object_or_404(Photo, slug=slug)
 
-    # Убираем проверку прав пользователя
-    # if photo.uploaded_by != request.user and not request.user.is_staff:
-    #     messages.error(request,
-    #                    'У вас нет прав для редактирования этой фотографии.')
-    #     return redirect('photo_detail_slug', slug=slug)
+    if photo.uploaded_by != request.user and not request.user.is_staff:
+        messages.error(request,
+                       'У вас нет прав для редактирования этой фотографии.')
+        return redirect('photo_detail_slug', slug=slug)
 
     if request.method == 'POST':
         form = PhotoForm(request.POST, request.FILES, instance=photo)

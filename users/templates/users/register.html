@@ -1,0 +1,719 @@
+{% extends 'base.html' %}
+
+{% block title %}Регистрация{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="auth-form">
+                <h1 class="text-center mb-4">
+                    <i class="fas fa-user-plus"></i> Регистрация
+                </h1>
+                
+                <p class="text-center text-muted mb-4">
+                    Создайте аккаунт, чтобы загружать и делиться фотографиями
+                </p>
+                
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+                
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Имя пользователя -->
+                    <div class="form-group">
+                        <label for="{{ form.username.id_for_label }}" class="form-label">
+                            <i class="fas fa-user"></i> {{ form.username.label }}
+                            <span class="text-danger">*</span>
+                        </label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.username.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if form.username.help_text %}
+                            <div id="username-help" class="form-text field-help" style="display: none;">
+                                {{ form.username.help_text }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Email -->
+                    <div class="form-group">
+                        <label for="{{ form.email.id_for_label }}" class="form-label">
+                            <i class="fas fa-envelope"></i> {{ form.email.label }}
+                            <span class="text-danger">*</span>
+                        </label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.email.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if form.email.help_text %}
+                            <div id="email-help" class="form-text field-help" style="display: none;">
+                                {{ form.email.help_text }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Имя и Фамилия -->
+                    <div class="form-group">
+                        <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                            <i class="fas fa-id-card"></i> {{ form.first_name.label }}
+                        </label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.first_name.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if form.first_name.help_text %}
+                            <div id="first-name-help" class="form-text field-help" style="display: none;">
+                                {{ form.first_name.help_text }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                            <i class="fas fa-id-card"></i> {{ form.last_name.label }}
+                        </label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.last_name.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if form.last_name.help_text %}
+                            <div id="last-name-help" class="form-text field-help" style="display: none;">
+                                {{ form.last_name.help_text }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Пароль -->
+                    <div class="form-group">
+                        <label for="{{ form.password1.id_for_label }}" class="form-label">
+                            <i class="fas fa-lock"></i> {{ form.password1.label }}
+                            <span class="text-danger">*</span>
+                        </label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.password1.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Динамические требования к паролю -->
+                        <div id="password-requirements" class="password-requirements mt-2 field-help" style="display: none;">
+                            <div class="form-text">
+                                <strong>Требования к паролю:</strong>
+                                <ul id="password-rules" class="mt-1 mb-0">
+                                    <li id="rule-length" class="password-rule">
+                                        <i class="fas fa-times text-danger"></i>
+                                        Минимум 8 символов
+                                    </li>
+                                    <li id="rule-similarity" class="password-rule">
+                                        <i class="fas fa-times text-danger"></i>
+                                        Не должен быть похож на личную информацию
+                                    </li>
+                                    <li id="rule-common" class="password-rule">
+                                        <i class="fas fa-times text-danger"></i>
+                                        Не должен быть слишком простым
+                                    </li>
+                                    <li id="rule-numeric" class="password-rule">
+                                        <i class="fas fa-times text-danger"></i>
+                                        Не может состоять только из цифр
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Подтверждение пароля -->
+                    <div class="form-group">
+                        <label for="{{ form.password2.id_for_label }}" class="form-label">
+                            <i class="fas fa-lock"></i> {{ form.password2.label }}
+                            <span class="text-danger">*</span>
+                        </label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.password2.errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if form.password2.help_text %}
+                            <div id="password2-help" class="form-text field-help" style="display: none;">
+                                {{ form.password2.help_text }}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Индикатор совпадения паролей -->
+                        <div id="password-match" class="mt-2 field-help" style="display: none;">
+                            <div id="password-match-message" class="form-text">
+                                <i class="fas fa-times text-danger"></i>
+                                Пароли не совпадают
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Кнопка регистрации -->
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-user-plus"></i> Зарегистрироваться
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Ссылки -->
+                <div class="text-center mt-4">
+                    <div class="mb-2">
+                        <span class="text-muted">Уже есть аккаунт?</span>
+                        <a href="{% url 'users:login' %}" class="text-decoration-none">
+                            <i class="fas fa-sign-in-alt"></i> Войти
+                        </a>
+                    </div>
+                    
+                    <div>
+                        <small class="text-muted">
+                            Или <a href="{% url 'photo_list' %}" class="text-decoration-none">продолжить как гость</a>
+                        </small>
+                    </div>
+                </div>
+                
+                <!-- Информация о преимуществах регистрации -->
+                <div class="registration-benefits mt-4 p-3 bg-light rounded">
+                    <h6 class="mb-2"><i class="fas fa-star text-warning"></i> Преимущества регистрации:</h6>
+                    <ul class="small mb-0">
+                        <li>Загружайте неограниченное количество фотографий</li>
+                        <li>Создавайте персональную галерею</li>
+                        <li>Оставляйте комментарии к фотографиям</li>
+                        <li>Управляйте своими публикациями</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const password1Input = document.getElementById('{{ form.password1.id_for_label }}');
+    const password2Input = document.getElementById('{{ form.password2.id_for_label }}');
+    const usernameInput = document.getElementById('{{ form.username.id_for_label }}');
+    const emailInput = document.getElementById('{{ form.email.id_for_label }}');
+    const firstNameInput = document.getElementById('{{ form.first_name.id_for_label }}');
+    const lastNameInput = document.getElementById('{{ form.last_name.id_for_label }}');
+    
+    const passwordRequirements = document.getElementById('password-requirements');
+    const passwordMatch = document.getElementById('password-match');
+    const passwordMatchMessage = document.getElementById('password-match-message');
+    
+    // Общие пароли для проверки
+    const commonPasswords = [
+        'password', '123456', '123456789', 'qwerty', 'abc123', 'password123',
+        'admin', 'letmein', 'welcome', 'monkey', '1234567890', 'password1',
+        'пароль', '123', 'qwe123', 'admin123'
+    ];
+    
+    // Настройка показа/скрытия подсказок для всех полей
+    const fieldHelpMap = {
+        '{{ form.username.id_for_label }}': 'username-help',
+        '{{ form.email.id_for_label }}': 'email-help',
+        '{{ form.first_name.id_for_label }}': 'first-name-help',
+        '{{ form.last_name.id_for_label }}': 'last-name-help',
+        '{{ form.password2.id_for_label }}': 'password2-help'
+    };
+    
+    // Добавляем обработчики для всех полей с подсказками
+    Object.keys(fieldHelpMap).forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        const helpId = fieldHelpMap[fieldId];
+        const helpElement = document.getElementById(helpId);
+        
+        if (field && helpElement) {
+            field.addEventListener('focus', function() {
+                showFieldHelp(helpElement);
+            });
+            
+            field.addEventListener('blur', function() {
+                hideFieldHelp(helpElement);
+            });
+        }
+    });
+    
+    // Специальная обработка для поля пароля
+    password1Input.addEventListener('focus', function() {
+        showFieldHelp(passwordRequirements);
+        validatePassword();
+    });
+    
+    password1Input.addEventListener('blur', function() {
+        // Скрываем требования только если все правила выполнены
+        const allRulesPassed = document.querySelectorAll('.password-rule .fa-times').length === 0;
+        if (allRulesPassed) {
+            hideFieldHelp(passwordRequirements);
+        }
+    });
+    
+    // Специальная обработка для подтверждения пароля
+    password2Input.addEventListener('focus', function() {
+        const password2Help = document.getElementById('password2-help');
+        if (password2Help) {
+            showFieldHelp(password2Help);
+        }
+        
+        if (password2Input.value || password1Input.value) {
+            showFieldHelp(passwordMatch);
+            validatePasswordMatch();
+        }
+    });
+    
+    password2Input.addEventListener('blur', function() {
+        const password2Help = document.getElementById('password2-help');
+        if (password2Help) {
+            hideFieldHelp(password2Help);
+        }
+        
+        if (password1Input.value === password2Input.value && password2Input.value !== '') {
+            hideFieldHelp(passwordMatch);
+        }
+    });
+    
+    // Валидация пароля в реальном времени
+    password1Input.addEventListener('input', validatePassword);
+    
+    // Валидация совпадения паролей
+    password2Input.addEventListener('input', validatePasswordMatch);
+    
+    // Также проверяем при изменении первого пароля
+    password1Input.addEventListener('input', function() {
+        if (password2Input.value) {
+            validatePasswordMatch();
+        }
+    });
+    
+    function showFieldHelp(element) {
+        if (element) {
+            element.style.display = 'block';
+            element.classList.add('fade-in');
+        }
+    }
+    
+    function hideFieldHelp(element) {
+        if (element) {
+            element.classList.remove('fade-in');
+            element.classList.add('fade-out');
+            setTimeout(() => {
+                element.style.display = 'none';
+                element.classList.remove('fade-out');
+            }, 200);
+        }
+    }
+    
+    function validatePassword() {
+        const password = password1Input.value;
+        const username = usernameInput.value.toLowerCase();
+        const email = emailInput.value.toLowerCase();
+        const firstName = firstNameInput.value.toLowerCase();
+        const lastName = lastNameInput.value.toLowerCase();
+        
+        // Правило 1: Минимум 8 символов
+        updateRule('rule-length', password.length >= 8);
+        
+        // Правило 2: Не похож на личную информацию
+        let isSimilar = false;
+        if (username && password.toLowerCase().includes(username)) isSimilar = true;
+        if (email && password.toLowerCase().includes(email.split('@')[0])) isSimilar = true;
+        if (firstName && firstName.length > 2 && password.toLowerCase().includes(firstName)) isSimilar = true;
+        if (lastName && lastName.length > 2 && password.toLowerCase().includes(lastName)) isSimilar = true;
+        updateRule('rule-similarity', !isSimilar);
+        
+        // Правило 3: Не слишком простой пароль
+        const isCommon = commonPasswords.some(common => 
+            password.toLowerCase().includes(common) || common.includes(password.toLowerCase())
+        );
+        updateRule('rule-common', !isCommon && password.length > 0);
+        
+        // Правило 4: Не только цифры
+        const isOnlyNumeric = /^\d+$/.test(password);
+        updateRule('rule-numeric', !isOnlyNumeric || password.length === 0);
+        
+        // Скрываем правила, которые выполнены
+        hideCompletedRules();
+    }
+    
+    function validatePasswordMatch() {
+        const password1 = password1Input.value;
+        const password2 = password2Input.value;
+        
+        if (password2.length === 0) {
+            if (document.activeElement !== password2Input) {
+                hideFieldHelp(passwordMatch);
+            }
+            return;
+        }
+        
+        if (document.activeElement === password2Input || password2.length > 0) {
+            showFieldHelp(passwordMatch);
+        }
+        
+        if (password1 === password2) {
+            passwordMatchMessage.innerHTML = '<i class="fas fa-check text-success"></i> Пароли совпадают';
+            passwordMatchMessage.className = 'form-text text-success';
+        } else {
+            passwordMatchMessage.innerHTML = '<i class="fas fa-times text-danger"></i> Пароли не совпадают';
+            passwordMatchMessage.className = 'form-text text-danger';
+        }
+    }
+    
+    function updateRule(ruleId, isValid) {
+        const rule = document.getElementById(ruleId);
+        const icon = rule.querySelector('i');
+        
+        if (isValid) {
+            icon.className = 'fas fa-check text-success';
+            rule.style.opacity = '0.6';
+        } else {
+            icon.className = 'fas fa-times text-danger';
+            rule.style.opacity = '1';
+        }
+    }
+    
+    function hideCompletedRules() {
+        const rules = document.querySelectorAll('.password-rule');
+        let hasFailedRules = false;
+        
+        rules.forEach(rule => {
+            const icon = rule.querySelector('i');
+            if (icon.classList.contains('fa-times')) {
+                rule.style.display = 'list-item';
+                hasFailedRules = true;
+            } else {
+                // Скрываем выполненные правила через небольшую задержку
+                setTimeout(() => {
+                    if (icon.classList.contains('fa-check')) {
+                        rule.style.display = 'none';
+                    }
+                }, 500);
+            }
+        });
+        
+        // Если все правила выполнены и поле не в фокусе, скрываем весь блок
+        if (!hasFailedRules && document.activeElement !== password1Input) {
+            setTimeout(() => {
+                hideFieldHelp(passwordRequirements);
+            }, 1000);
+        }
+    }
+    
+    // Улучшение UX: подсветка полей при ошибках
+    const formInputs = [usernameInput, emailInput, firstNameInput, lastNameInput, password1Input, password2Input];
+    formInputs.forEach(input => {
+        if (input) {
+            input.addEventListener('input', function() {
+                // Убираем класс ошибки при начале ввода
+                this.classList.remove('is-invalid');
+                const errorDiv = this.parentNode.querySelector('.invalid-feedback');
+                if (errorDiv) {
+                    errorDiv.style.display = 'none';
+                }
+            });
+        }
+    });
+    
+    // Проверка уникальности username и email (можно добавить AJAX запросы)
+    let usernameTimeout, emailTimeout;
+    
+    usernameInput.addEventListener('input', function() {
+        clearTimeout(usernameTimeout);
+        usernameTimeout = setTimeout(() => {
+            validateUsernameFormat(this.value);
+        }, 500);
+    });
+    
+    emailInput.addEventListener('input', function() {
+        clearTimeout(emailTimeout);
+        emailTimeout = setTimeout(() => {
+            validateEmailFormat(this.value);
+        }, 500);
+    });
+    
+    function validateUsernameFormat(username) {
+        const usernameRegex = /^[\w.@+-]+$/;
+        const isValid = usernameRegex.test(username) && username.length <= 150;
+        
+        if (username.length > 0 && !isValid) {
+            showFieldError(usernameInput, 'Недопустимые символы в имени пользователя');
+        } else {
+            hideFieldError(usernameInput);
+        }
+    }
+    
+    function validateEmailFormat(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const isValid = emailRegex.test(email);
+        
+        if (email.length > 0 && !isValid) {
+            showFieldError(emailInput, 'Введите корректный email адрес');
+        } else {
+            hideFieldError(emailInput);
+        }
+    }
+    
+    function showFieldError(input, message) {
+        input.classList.add('is-invalid');
+        let errorDiv = input.parentNode.querySelector('.field-validation-error');
+        if (!errorDiv) {
+            errorDiv = document.createElement('div');
+            errorDiv.className = 'field-validation-error invalid-feedback d-block';
+            input.parentNode.appendChild(errorDiv);
+        }
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+    }
+    
+    function hideFieldError(input) {
+        input.classList.remove('is-invalid');
+        const errorDiv = input.parentNode.querySelector('.field-validation-error');
+        if (errorDiv) {
+            errorDiv.style.display = 'none';
+        }
+    }
+    
+    // Глобальный обработчик для скрытия всех подсказок при клике вне формы
+    document.addEventListener('click', function(event) {
+        const form = document.querySelector('form');
+        if (!form.contains(event.target)) {
+            // Скрываем все активные подсказки
+            const activeHelps = document.querySelectorAll('.field-help[style*="block"]');
+            activeHelps.forEach(help => {
+                // Не скрываем подсказки с ошибками
+                if (!help.querySelector('.fa-times')) {
+                    hideFieldHelp(help);
+                }
+            });
+        }
+    });
+    
+    // Обработчик для клавиши Tab - показываем подсказку для следующего поля
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Tab') {
+            setTimeout(() => {
+                const activeElement = document.activeElement;
+                if (activeElement && fieldHelpMap[activeElement.id]) {
+                    const helpElement = document.getElementById(fieldHelpMap[activeElement.id]);
+                    if (helpElement) {
+                        showFieldHelp(helpElement);
+                    }
+                }
+                
+                // Специальная обработка для полей паролей
+                if (activeElement === password1Input) {
+                    showFieldHelp(passwordRequirements);
+                    validatePassword();
+                } else if (activeElement === password2Input) {
+                    const password2Help = document.getElementById('password2-help');
+                    if (password2Help) {
+                        showFieldHelp(password2Help);
+                    }
+                    if (password2Input.value || password1Input.value) {
+                        showFieldHelp(passwordMatch);
+                        validatePasswordMatch();
+                    }
+                }
+            }, 10);
+        }
+    });
+});
+</script>
+
+<style>
+.password-requirements {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.password-rule {
+    margin-bottom: 0.25rem;
+    transition: opacity 0.3s ease, display 0.3s ease;
+    font-size: 0.875rem;
+}
+
+.password-rule i {
+    width: 16px;
+    margin-right: 0.5rem;
+}
+
+.registration-benefits {
+    border-left: 4px solid var(--success-color);
+}
+
+.registration-benefits ul {
+    padding-left: 1.2rem;
+}
+
+.registration-benefits li {
+    margin-bottom: 0.25rem;
+}
+
+/* Анимации для появления/скрытия подсказок */
+.field-help {
+    transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.field-help.fade-in {
+    animation: fadeInUp 0.2s ease-in-out;
+}
+
+.field-help.fade-out {
+    animation: fadeOutDown 0.2s ease-in-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOutDown {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+}
+
+/* Улучшенные стили для полей ввода */
+.form-control {
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.form-control.is-invalid:focus {
+    border-color: var(--danger-color);
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* Стили для подсказок */
+.form-text {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.form-text.text-success {
+    color: var(--success-color) !important;
+}
+
+.form-text.text-danger {
+    color: var(--danger-color) !important;
+}
+
+/* Индикатор обязательных полей */
+.text-danger {
+    color: var(--danger-color) !important;
+}
+
+/* Улучшенные стили для кнопок */
+.btn {
+    transition: all 0.15s ease-in-out;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .auth-form {
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+    
+    .password-requirements {
+        font-size: 0.8rem;
+        padding: 0.5rem;
+    }
+    
+    .registration-benefits {
+        font-size: 0.85rem;
+    }
+    
+    .form-text {
+        font-size: 0.8rem;
+    }
+    
+    .password-rule {
+        font-size: 0.8rem;
+    }
+}
+
+/* Стили для улучшения доступности */
+.form-control:focus {
+    outline: none;
+}
+
+.btn:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Анимация для кнопки отправки */
+.btn-success {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-success::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-success:hover::before {
+    left: 100%;
+}
+</style>
+{% endblock %}
+
