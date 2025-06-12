@@ -4,7 +4,7 @@ from django.utils.text import slugify
 from enum import Enum
 from django.db.models import Count, F, Q, Value, ExpressionWrapper
 from django.db.models.functions import ExtractYear
-from taggit.managers import TaggableManager
+from taggit.managers import TaggableManager # type: ignore
 import uuid
 import os
 

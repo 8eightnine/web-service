@@ -419,7 +419,7 @@ class PhotosByTagView(DataMixin, ListView):
 
     def get_queryset(self):
         tag_slug = self.kwargs['tag_slug']
-        from taggit.models import Tag
+        from taggit.models import Tag # type: ignore
 
         try:
             # Try to find by exact slug
@@ -439,7 +439,7 @@ class PhotosByTagView(DataMixin, ListView):
         context = super().get_context_data(**kwargs)
         tag_slug = self.kwargs['tag_slug']
 
-        from taggit.models import Tag
+        from taggit.models import Tag # type: ignore
         try:
             tag = Tag.objects.get(slug=tag_slug)
             tag_name = tag.name
@@ -466,7 +466,7 @@ class TagListView(DataMixin, ListView):
     title_page = 'Все теги'
 
     def get_queryset(self):
-        from taggit.models import Tag
+        from taggit.models import Tag # type: ignore
         from django.db.models import Count
         return Tag.objects.annotate(photo_count=Count(
             'taggit_taggeditem_items')).order_by('-photo_count')
@@ -850,7 +850,7 @@ def photo_detail(request, pk=None, slug=None):
 
 def photos_by_tag(request, tag_slug):
     """Фотографии по тегу с поддержкой кириллицы"""
-    from taggit.models import Tag
+    from taggit.models import Tag # type: ignore
     from django.utils.text import slugify
 
     try:
@@ -882,7 +882,7 @@ def photos_by_tag(request, tag_slug):
 
 
 def tag_list(request):
-    from taggit.models import Tag
+    from taggit.models import Tag # type: ignore
     from django.db.models import Count
 
     tags = Tag.objects.annotate(
