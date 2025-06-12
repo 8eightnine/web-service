@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1><i class="fas fa-users"></i> {{ title }}</h1>
+            <p class="text-muted">Список всех зарегистрированных пользователей</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        {% for profile in profiles %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        {% if profile.avatar %}
+                            <img src="{{ profile.avatar.url }}" 
+                                 alt="Аватар {{ profile.user.username }}" 
+                                 class="rounded-circle mb-3" 
+                                 style="width: 80px; height: 80px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                                 style="width: 80px; height: 80px;">
+                                <i class="fas fa-user fa-2x text-white"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <h5 class="card-title">{{ profile.get_full_name }}</h5>
+                        <p class="text-muted">@{{ profile.user.username }}</p>
+                        
+                        {% if profile.bio %}
+                            <p class="card-text">{{ profile.bio|truncatewords:15 }}</p>
+                        {% endif %}
+                        
+                        <div class="text-muted small mb-3">
+                            <i class="fas fa-calendar"></i> 
+                            Регистрация: {{ profile.user.date_joined|date:"d.m.Y" }}
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'users:profile_view_user' profile.user.username %}" 
+                               class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-eye"></i> Просмотр профиля
+                            </a>
+                            
+                            {% if user_permissions.can_edit_any_profile %}
+                                <a href="{% url 'users:edit_profile_user' profile.user.username %}" 
+                                   class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-edit"></i> Редактировать
+                                </a>
+                            {% endif %}
+                            
+                            {% if user_permissions.can_manage_user_roles %}
+                                <a href="{% url 'users:manage_user_roles' profile.user.id %}" 
+                                   class="btn btn-outline-warning btn-sm">
+                                    <i class="fas fa-user-cog"></i> Роли
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer text-muted small">
+                        <div class="row text-center">
+                            <div class="col">
+                                <strong>{{ profile.user.groups.count }}</strong><br>
+                                Групп
+                            </div>
+                            <div class="col">
+                                <strong>{{ profile.user.user_permissions.count }}</strong><br>
+                                Разрешений
+                            </div>
+                            <div class="col">
+                                {% if profile.user.is_staff %}
+                                    <i class="fas fa-crown text-warning" title="Персонал"></i>
+                                {% elif profile.user.is_superuser %}
+                                    <i class="fas fa-star text-danger" title="Суперпользователь"></i>
+                                {% else %}
+                                    <i class="fas fa-user text-secondary" title="Пользователь"></i>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle"></i>
+                    Профили пользователей не найдены.
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

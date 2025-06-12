@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm, PasswordResetForm
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from .models import Profile
 
 
@@ -93,7 +94,6 @@ class UserRegistrationForm(UserCreationForm):
     """
     Расширенная форма регистрации пользователя
     """
-    
     email = forms.EmailField(
         required=True,
         label='Email адрес',
@@ -183,8 +183,9 @@ class UserRegistrationForm(UserCreationForm):
         user.last_name = self.cleaned_data['last_name']
         
         if commit:
-            user.save()
-            # Профиль создастся автоматически через сигнал
+            with transaction.atomic():
+                user.save()
+                # Профиль создастся автоматически через сигнал
         return user
 
 

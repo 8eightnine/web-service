@@ -17,19 +17,22 @@
             
             <!-- Action buttons for photo owner or staff -->
             {% if user.is_authenticated %}
-                {% if photo.uploaded_by == user or user.is_staff %}
-                    <div class="photo-actions">
-                        <a href="{% url 'edit_photo' photo.slug %}" class="edit-btn">
-                            Редактировать
-                        </a>
-                        <a href="{% url 'delete_photo' photo.slug %}" class="delete-btn" 
-                           onclick="return confirm('Вы уверены, что хотите удалить эту фотографию?')">
-                            Удалить
-                        </a>
-                    </div>
+                {% if user.groups.all %}
+                    {% for group in user.groups.all %}
+                        {% if group.name == "Редакторы" or photo.uploaded_by == user %}
+                            <div class="photo-actions">
+                                <a href="{% url 'edit_photo' photo.slug %}" class="edit-btn">
+                                Редактировать
+                                </a>
+                                <a href="{% url 'delete_photo' photo.slug %}" class="delete-btn" 
+                                    onclick="return confirm('Вы уверены, что хотите удалить эту фотографию?')">
+                                    Удалить
+                                </a>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
                 {% endif %}
-            {% endif %}
-            
+            {% endif %}    
             <div class="photo-description">
                 <h3>Описание:</h3>
                 <p>{{ photo.description }}</p>

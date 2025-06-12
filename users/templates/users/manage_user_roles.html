@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'users:moderator_panel' %}">Панель модератора</a></li>
+                    <li class="breadcrumb-item active">{{ title }}</li>
+                </ol>
+            </nav>
+            
+            <h1><i class="fas fa-user-cog"></i> {{ title }}</h1>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-user"></i> Информация о пользователе</h5>
+                </div>
+                <div class="card-body text-center">
+                    {% if profile_user.profile.avatar %}
+                        <img src="{{ profile_user.profile.avatar.url }}" 
+                             alt="Аватар" 
+                             class="rounded-circle mb-3" 
+                             style="width: 100px; height: 100px; object-fit: cover;">
+                    {% else %}
+                        <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                             style="width: 100px; height: 100px;">
+                            <i class="fas fa-user fa-3x text-white"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <h5>{{ profile_user.get_full_name|default:profile_user.username }}</h5>
+                    <p class="text-muted">@{{ profile_user.username }}</p>
+                    <p class="text-muted">{{ profile_user.email }}</p>
+                    
+                    <div class="text-muted small">
+                        <p><i class="fas fa-calendar"></i> Регистрация: {{ profile_user.date_joined|date:"d.m.Y H:i" }}</p>
+                        <p><i class="fas fa-clock"></i> Последний вход: {{ profile_user.last_login|date:"d.m.Y H:i"|default:"Никогда" }}</p>
+                    </div>
+                    
+                    <div class="mt-3">
+                        {% if profile_user.is_active %}
+                            <span class="badge bg-success">Активен</span>
+                        {% else %}
+                            <span class="badge bg-danger">Неактивен</span>
+                        {% endif %}
+                        
+                        {% if profile_user.is_staff %}
+                            <span class="badge bg-warning">Персонал</span>
+                        {% endif %}
+                        
+                        {% if profile_user.is_superuser %}
+                            <span class="badge bg-danger">Суперпользователь</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-users"></i> Группы пользователей</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for group in all_groups %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" 
+                                               type="checkbox" 
+                                               name="groups" 
+                                               value="{{ group.id }}" 
+                                               id="group_{{ group.id }}"
+                                               {% if group in user_groups %}checked{% endif %}>
+                                        <label class="form-check-label" for="group_{{ group.id }}">
+                                            <strong>{{ group.name }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ group.permissions.count }} разрешений</small>
+                                        </label>
+                                    </div>
+                                    
+                                    {% if group.permissions.all %}
+                                        <div class="ms-4 mt-2">
+                                            <small class="text-muted">
+                                                <strong>Разрешения группы:</strong><br>
+                                                {% for perm in group.permissions.all %}
+                                                    • {{ perm.name }}<br>
+                                                {% endfor %}
+                                            </small>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-key"></i> Индивидуальные разрешения</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for permission in all_permissions %}
+                                <div class="col-md-6 mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" 
+                                               type="checkbox" 
+                                               name="permissions" 
+                                               value="{{ permission.id }}" 
+                                               id="perm_{{ permission.id }}"
+                                               {% if permission in user_permissions %}checked{% endif %}>
+                                        <label class="form-check-label" for="perm_{{ permission.id }}">
+                                            {{ permission.name }}
+                                            <br>
+                                            <small class="text-muted">{{ permission.content_type.app_label }}.{{ permission.codename }}</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{% url 'users:moderator_panel' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Назад
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Сохранить изменения
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

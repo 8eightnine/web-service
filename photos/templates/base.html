@@ -50,6 +50,29 @@
                                 <a href="{% url 'users:logout' %}">
                                     <i class="fas fa-sign-out-alt"></i> Выйти
                                 </a>
+                                {% if perms.users.can_view_all_profiles %}
+                                    <div class="dropdown-divider"></div>
+                                    <a href="{% url 'users:all_profiles' %}">
+                                        <i class="fas fa-users"></i> Все профили
+                                    </a>
+                                {% endif %}
+                                {% if user.groups.all %}
+                                    {% for group in user.groups.all %}
+                                        {% if group.name == "Модераторы" %}
+                                            <div class="dropdown-divider"></div>
+                                            <a href="{% url 'users:moderator_panel' %}">
+                                                <i class="fas fa-shield-alt"></i> Панель модератора
+                                            </a>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                                
+                                {% if user.is_staff %}
+                                    <div class="dropdown-divider"></div>
+                                    <a href="/admin/">
+                                        <i class="fas fa-cog"></i> Админ-панель
+                                    </a>
+                                {% endif %}
                             </div>
                         </div>
                     {% else %}

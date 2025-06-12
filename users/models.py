@@ -19,6 +19,13 @@ class Profile(models.Model):
     class Meta:
         verbose_name = "Профиль"
         verbose_name_plural = "Профили"
+        
+        # Добавляем пользовательские разрешения
+        permissions = [
+            ("can_view_all_profiles", "Может просматривать все профили пользователей"),
+            ("can_edit_any_profile", "Может редактировать любой профиль"),
+            ("can_manage_user_roles", "Может управлять ролями пользователей"),
+        ]
 
     def __str__(self):
         return f"Профиль {self.user.username}"
@@ -30,16 +37,14 @@ class Profile(models.Model):
 
 
 @receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    """Автоматически создает профиль при создании пользователя"""
+def create_or_update_user_profile(sender, instance, created, **kwargs):
+    """Автоматически создает или обновляет профиль при создании/сохранении пользователя"""
     if created:
-        Profile.objects.create(user=instance)
-
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    """Автоматически сохраняет профиль при сохранении пользователя"""
-    if hasattr(instance, 'profile'):
-        instance.profile.save()
+        # Создаем профиль только если он не существует
+        Profile.objects.get_or_create(user=instance)
     else:
-        Profile.objects.create(user=instance)
+        # Обновляем существующий профиль или создаем новый
+        if hasattr(instance, 'profile'):
+            instance.profile.save()
+        else:
+            Profile.objects.get_or_create(user=instance)
