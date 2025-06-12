@@ -1,0 +1,104 @@
+# Django Framework
+Django==4.2.7
+
+# Database
+psycopg2-binary==2.9.7
+
+# Image Processing
+Pillow==10.0.1
+
+# Tags Management
+django-taggit==4.0.0
+
+# Forms and Widgets
+django-crispy-forms==2.0
+crispy-bootstrap5==0.7
+
+# Authentication and Authorization
+django-allauth==0.57.0
+
+# Static Files and Media
+whitenoise==6.6.0
+
+# Environment Variables
+python-decouple==3.8
+
+# Development Tools
+django-debug-toolbar==4.2.0
+
+# Security
+django-cors-headers==4.3.1
+
+# Timezone Support
+pytz==2023.3
+
+# URL Utilities
+django-extensions==3.2.3
+
+# Form Validation
+django-phonenumber-field==7.1.0
+phonenumbers==8.13.23
+
+# Pagination
+django-pure-pagination==0.3.0
+
+# Caching (optional)
+django-redis==5.4.0
+redis==5.0.1
+
+# Email Backend (for development)
+django-smtp-ssl==1.0
+
+# File Upload Validation
+python-magic==0.4.27
+
+# Slugify for Cyrillic
+python-slugify==8.0.1
+
+# Date and Time Utilities
+python-dateutil==2.8.2
+
+# HTTP Requests (if needed for external APIs)
+requests==2.31.0
+
+# JSON Web Tokens (if implementing API)
+PyJWT==2.8.0
+
+# Password Validation
+django-password-validators==1.7.1
+
+# Rich Text Editor (optional)
+django-ckeditor==6.7.0
+
+# Thumbnail Generation
+easy-thumbnails==2.8.5
+
+# Social Authentication (if using social login)
+social-auth-app-django==5.4.0
+
+# Logging
+django-log-viewer==1.1.7
+
+# Admin Interface Enhancements
+django-admin-interface==0.26.1
+django-colorfield==0.10.1
+
+# Testing
+factory-boy==3.3.0
+faker==19.12.0
+
+# Code Quality
+flake8==6.1.0
+black==23.10.1
+
+# Documentation
+sphinx==7.2.6
+
+# Production Server
+gunicorn==21.2.0
+
+# Monitoring
+sentry-sdk==1.38.0
+
+# Backup
+django-dbbackup==4.0.2
