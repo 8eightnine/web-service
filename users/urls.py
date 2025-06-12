@@ -12,9 +12,9 @@ urlpatterns = [
     
     # Профили
     path('profile/', views.profile_view, name='profile_view'),
-    path('profile/<str:username>/', views.profile_view, name='profile_view_user'),
     path('profile/edit/', views.edit_profile, name='edit_profile'),
     path('profile/edit/<str:username>/', views.edit_profile, name='edit_profile_user'),
+    path('profile/<str:username>/', views.profile_view, name='profile_view_user'),
     
     # Смена пароля
     path('password-change/', 

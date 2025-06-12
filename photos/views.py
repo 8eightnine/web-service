@@ -7,7 +7,7 @@ from django.core.files.storage import default_storage
 from django.views import View
 from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView, DeleteView, FormView
 from django.urls import reverse_lazy
-from .models import Photo, Category, PhotoCategory
+from .models import Photo, Category, PhotoCategory, Comment, PhotoLike
 from .forms import CommentForm, PhotoForm, PhotoUploadForm
 from .utils import DataMixin
 from django.db.models import Count, Avg, Max, Value, FloatField, ExpressionWrapper, IntegerField, F
@@ -15,14 +15,14 @@ from datetime import date
 
 
 class RedirectToHomeView(View):
-    """Redirect to photo list page"""
+    """Перенаправление на главную страницу"""
 
     def get(self, request, *args, **kwargs):
         return redirect('photo_list')
 
 
 class SimplePhotoView(View):
-    """Simple View class for basic photo operations"""
+    """Простой View для работы с фотографиями"""
     
     def get(self, request, *args, **kwargs):
         """Handle GET requests - show simple photo info"""
@@ -38,7 +38,7 @@ class SimplePhotoView(View):
         return render(request, 'photos/simple_view.html', context)
     
     def post(self, request, *args, **kwargs):
-        """Handle POST requests - could be used for simple operations"""
+        """Реализация POST запроса"""
         # Простая обработка POST запроса
         action = request.POST.get('action', '')
         
@@ -53,7 +53,7 @@ class SimplePhotoView(View):
 
 
 class UploadPhotoView(DataMixin, CreateView):
-    """Upload photo using ModelForm"""
+    """Загрузка фотографии"""
     model = Photo
     form_class = PhotoForm
     template_name = 'photos/upload_photo.html'
@@ -76,7 +76,6 @@ class UploadPhotoView(DataMixin, CreateView):
                 photo.uploaded_by = self.request.user
             photo.save()
 
-            # Handle tags
             tags_text = form.cleaned_data.get('tags', '')
             if tags_text:
                 tags_list = [
@@ -97,7 +96,7 @@ class UploadPhotoView(DataMixin, CreateView):
 
 
 class UploadPhotoNonModelView(DataMixin, FormView):
-    """Upload photo using regular Form (not ModelForm)"""
+    """Загрузка фотографии с использованием обычной формы"""
     form_class = PhotoUploadForm
     template_name = 'photos/upload_photo_non_model.html'
     success_url = reverse_lazy('photo_list')
@@ -114,7 +113,7 @@ class UploadPhotoNonModelView(DataMixin, FormView):
 
     def form_valid(self, form):
         try:
-            # Create Photo object manually from form data
+            # Создание объекта Photo без сохранения в базу данных
             photo = Photo(title=form.cleaned_data['title'],
                           description=form.cleaned_data['description'],
                           image=form.cleaned_data['image'],
@@ -125,7 +124,7 @@ class UploadPhotoNonModelView(DataMixin, FormView):
 
             photo.save()
 
-            # Handle tags
+            # Работа с тегами
             tags_text = form.cleaned_data.get('tags', '')
             if tags_text:
                 tags_list = [
@@ -146,7 +145,7 @@ class UploadPhotoNonModelView(DataMixin, FormView):
 
 
 class EditPhotoView(DataMixin, LoginRequiredMixin, UpdateView):
-    """Edit existing photo using UpdateView"""
+    """Редактирование фотографии"""
     model = Photo
     form_class = PhotoForm
     template_name = 'photos/edit_photo.html'
@@ -167,7 +166,7 @@ class EditPhotoView(DataMixin, LoginRequiredMixin, UpdateView):
         return obj
 
     def get_initial(self):
-        """Set initial form data with existing tags"""
+        """Заполнение полей формы из объекта модели"""
         initial = super().get_initial()
         initial['tags'] = ', '.join(
             [tag.name for tag in self.object.tags.all()])
@@ -177,7 +176,7 @@ class EditPhotoView(DataMixin, LoginRequiredMixin, UpdateView):
         try:
             updated_photo = form.save()
 
-            # Handle tags
+            # Редактирование тегов
             tags_text = form.cleaned_data.get('tags', '')
             updated_photo.tags.clear()
             if tags_text:
@@ -197,14 +196,14 @@ class EditPhotoView(DataMixin, LoginRequiredMixin, UpdateView):
         return super().form_invalid(form)
 
     def get_context_data(self, **kwargs):
-        """Add photo object to context for template"""
+        """Добавляем объект фотографии в контекст"""
         context = super().get_context_data(**kwargs)
         context['photo'] = self.object
         return context
 
 
 class DeletePhotoView(DataMixin, DeleteView):
-    """Delete photo with confirmation"""
+    """Удаление фото"""
     model = Photo
     template_name = 'photos/delete_photo.html'
     slug_url_kwarg = 'slug'
@@ -223,7 +222,7 @@ class DeletePhotoView(DataMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         try:
             self.object = self.get_object()
-            # Delete file from storage
+            # Удаляем файл с сервера
             if self.object.image:
                 default_storage.delete(self.object.image.name)
 
@@ -237,7 +236,7 @@ class DeletePhotoView(DataMixin, DeleteView):
 
 
 class PhotosByYearView(DataMixin, ListView):
-    """Display photos filtered by year"""
+    """Список фото по годам"""
     model = Photo
     template_name = 'photos/photos_by_year.html'
     context_object_name = 'photos'
@@ -259,7 +258,7 @@ class PhotosByYearView(DataMixin, ListView):
 
 
 class PhotosByCategoryView(DataMixin, ListView):
-    """Display photos filtered by category"""
+    """Список фото по категориям"""
     model = Photo
     template_name = 'photos/photos_by_category.html'
     context_object_name = 'photos'
@@ -278,7 +277,7 @@ class PhotosByCategoryView(DataMixin, ListView):
 
 
 class HomeView(DataMixin, TemplateView):
-    """Home page with recent photos"""
+    """Домашная страница"""
     template_name = 'photos/home.html'
     title_page = 'Главная страница'
 
@@ -289,7 +288,7 @@ class HomeView(DataMixin, TemplateView):
 
 
 class PhotoListView(DataMixin, ListView):
-    """List all photos with filtering and pagination"""
+    """Список фотографий с пагинацией"""
     model = Photo
     template_name = 'photos/photo_list.html'
     context_object_name = 'photos'
@@ -323,7 +322,6 @@ class PhotoListView(DataMixin, ListView):
                                     'year').values_list('uploaded_at__year',
                                                         flat=True)
 
-        # ИСПРАВЛЕНИЕ: используем PhotoCategory.choices() вместо Category.objects.all()
         categories = PhotoCategory.choices(
         )  # Это возвращает список кортежей (type, name)
 
@@ -331,7 +329,7 @@ class PhotoListView(DataMixin, ListView):
 
         # Статистика
         category_counts = []
-        for category_type, category_name in PhotoCategory.choices():
+        for category_type in PhotoCategory.choices():
             count = Photo.objects.filter(category_type=category_type).count()
             category_counts.append(count)
 
@@ -363,7 +361,7 @@ class PhotoListView(DataMixin, ListView):
 
 
 class PhotoDetailView(DataMixin, DetailView):
-    """Display single photo with comments"""
+    """Подробная карточка фотографии с комментариями"""
     model = Photo
     template_name = 'photos/photo_detail.html'
     context_object_name = 'photo'
@@ -393,8 +391,17 @@ class PhotoDetailView(DataMixin, DetailView):
         prev_photo = photo.get_previous_photo()
         next_photo = photo.get_next_photo()
         related_photos = photo.get_related_photos()
-        comments = photo.comments.all()
+        
+        # Получаем комментарии (только родительские, без ответов)
+        comments = photo.comments.filter(parent=None).select_related('user').order_by('-created_at')
+        
+        # Формы для комментариев
         comment_form = CommentForm()
+        
+        # Проверяем реакцию пользователя на фото (если есть система лайков)
+        user_reaction = None
+        if self.request.user.is_authenticated and hasattr(photo, 'user_reaction'):
+            user_reaction = photo.user_reaction(self.request.user)
 
         return self.get_mixin_context(context,
                                       prev_photo=prev_photo,
@@ -402,17 +409,76 @@ class PhotoDetailView(DataMixin, DetailView):
                                       related_photos=related_photos,
                                       comments=comments,
                                       comment_form=comment_form,
+                                      user_reaction=user_reaction,
                                       title=photo.title)
 
     def post(self, request, *args, **kwargs):
-        """Handle comment submission - disabled since user system is not used"""
-        # Убираем функциональность комментариев, так как система пользователей не используется
-        messages.warning(request, 'Комментарии временно недоступны.')
-        return redirect('photo_detail_slug', slug=self.kwargs.get('slug'))
+        """Комментирование фото"""
+        self.object = self.get_object()
+        photo = self.object
+        
+        # Обработка лайков/дизлайков
+        if 'like_action' in request.POST:
+            if not request.user.is_authenticated:
+                messages.warning(request, 'Для оценки фотографий необходимо войти в систему.')
+                return redirect('photo_detail_slug', slug=photo.slug)
+            
+            action = request.POST.get('like_action')
+            try:
+                existing_like = PhotoLike.objects.get(user=request.user, photo=photo)
+                if existing_like.value == int(action):
+                    # Если пользователь нажал на ту же кнопку - убираем оценку
+                    existing_like.delete()
+                    messages.info(request, 'Оценка убрана.')
+                else:
+                    # Меняем оценку
+                    existing_like.value = int(action)
+                    existing_like.save()
+                    action_text = 'лайк' if int(action) == 1 else 'дизлайк'
+                    messages.success(request, f'Поставлен {action_text}!')
+            except PhotoLike.DoesNotExist:
+                # Создаем новую оценку
+                PhotoLike.objects.create(user=request.user, photo=photo, value=int(action))
+                action_text = 'лайк' if int(action) == 1 else 'дизлайк'
+                messages.success(request, f'Поставлен {action_text}!')
+            
+            return redirect('photo_detail_slug', slug=photo.slug)
+        
+        # Обработка комментариев (существующий код)
+        if not request.user.is_authenticated:
+            messages.warning(request, 'Для добавления комментариев необходимо войти в систему.')
+            return redirect('photo_detail_slug', slug=photo.slug)
+        
+        comment_form = CommentForm(request.POST)
+        
+        if comment_form.is_valid():
+            try:
+                comment = comment_form.save(commit=False)
+                comment.photo = photo
+                comment.user = request.user
+                
+                # Проверяем, есть ли parent_id для ответа на комментарий
+                parent_id = request.POST.get('parent_id')
+                if parent_id:
+                    try:
+                        parent_comment = Comment.objects.get(id=parent_id, photo=photo)
+                        Comment.parent = parent_comment
+                    except comment.DoesNotExist:
+                        pass
+                
+                comment.save()
+                messages.success(request, 'Комментарий успешно добавлен!')
+                
+            except Exception as e:
+                messages.error(request, f'Ошибка при добавлении комментария: {str(e)}')
+        else:
+            messages.error(request, 'Пожалуйста, исправьте ошибки в комментарии.')
+        
+        return redirect('photo_detail_slug', slug=photo.slug)
 
 
 class PhotosByTagView(DataMixin, ListView):
-    """Display photos filtered by tag"""
+    """Отображение фотографий по тегу"""
     model = Photo
     template_name = 'photos/photos_by_tag.html'
     context_object_name = 'photos'
@@ -422,12 +488,12 @@ class PhotosByTagView(DataMixin, ListView):
         from taggit.models import Tag # type: ignore
 
         try:
-            # Try to find by exact slug
+            # Пытаемся найти тег по slug
             tag = Tag.objects.get(slug=tag_slug)
             return Photo.objects.filter(tags__slug=tag_slug).distinct()
         except Tag.DoesNotExist:
             try:
-                # Try to find by name (for Cyrillic tags)
+                # Пытаемся найти тег по возможному варианту (кириллица)
                 possible_name = tag_slug.replace('-', ' ')
                 tag = Tag.objects.get(name__iexact=possible_name)
                 return Photo.objects.filter(
@@ -460,7 +526,7 @@ class PhotosByTagView(DataMixin, ListView):
 
 
 class TagListView(DataMixin, ListView):
-    """Display all tags with statistics"""
+    """Показать все теги"""
     template_name = 'photos/tag_list.html'
     context_object_name = 'tags'
     title_page = 'Все теги'
@@ -490,7 +556,7 @@ class TagListView(DataMixin, ListView):
 
 
 class StatsView(DataMixin, TemplateView):
-    """Display comprehensive statistics"""
+    """Показать статистику"""
     template_name = 'photos/stats.html'
     title_page = 'Статистика'
 
@@ -553,412 +619,44 @@ class StatsView(DataMixin, TemplateView):
             last_photo=last_photo)
 
 
-# Keep the old function-based views for backward compatibility if needed
-def redirect_to_home(request):
-    return redirect('photo_list')
+@login_required
+def delete_comment(request, comment_id):
+    """Удаление комментария"""
+    comment = get_object_or_404(Comment, id=comment_id)
+    
+    # Проверяем права на удаление
+    if comment.user != request.user and not request.user.is_staff:
+        messages.error(request, 'У вас нет прав для удаления этого комментария.')
+        return redirect('photo_detail_slug', slug=comment.photo.slug)
+    
+    photo_slug = comment.photo.slug
+    comment.delete()
+    messages.success(request, 'Комментарий удален!')
+    
+    return redirect('photo_detail_slug', slug=photo_slug)
 
-
-def upload_photo(request):
-    """Загрузка фотографии с использованием формы, связанной с моделью"""
+@login_required 
+def edit_comment(request, comment_id):
+    """Редактирование комментария"""
+    comment = get_object_or_404(Comment, id=comment_id)
+    
+    # Проверяем права на редактирование
+    if comment.user != request.user and not request.user.is_staff:
+        messages.error(request, 'У вас нет прав для редактирования этого комментария.')
+        return redirect('photo_detail_slug', slug=comment.photo.slug)
+    
     if request.method == 'POST':
-        form = PhotoForm(request.POST, request.FILES)
+        form = CommentForm(request.POST, instance=comment)
         if form.is_valid():
-            try:
-                photo = form.save(commit=False)
-                if request.user.is_authenticated:
-                    photo.uploaded_by = request.user
-
-                # Сохраняем фото - upload_to автоматически вызовется
-                photo.save()
-
-                # Обработка тегов
-                tags_text = form.cleaned_data.get('tags', '')
-                if tags_text:
-                    tags_list = [
-                        tag.strip() for tag in tags_text.split(',')
-                        if tag.strip()
-                    ]
-                    photo.tags.add(*tags_list)
-
-                return redirect('photo_detail_slug', slug=photo.slug)
-            except Exception as e:
-                messages.error(request, f'Ошибка при загрузке: {str(e)}')
-        else:
-            messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
+            form.save()
+            messages.success(request, 'Комментарий обновлен!')
+            return redirect('photo_detail_slug', slug=comment.photo.slug)
     else:
-        form = PhotoForm()
-
-    return render(
-        request, 'photos/upload_photo.html', {
-            'form': form,
-            'form_type': 'ModelForm',
-            'form_description':
-            'Форма связанная с моделью (использует upload_to)'
-        })
-
-
-def upload_photo_non_model(request):
-    """Загрузка фотографии с использованием формы, НЕ связанной с моделью"""
-    if request.method == 'POST':
-        form = PhotoUploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            try:
-                # Создаем объект Photo из данных формы вручную
-                photo = Photo(
-                    title=form.cleaned_data['title'],
-                    description=form.cleaned_data['description'],
-                    image=form.
-                    cleaned_data['image'],  # upload_to сработает при save()
-                    category_type=form.cleaned_data['category_type'])
-
-                # Убираем привязку к пользователю
-                if request.user.is_authenticated:
-                    photo.uploaded_by = request.user
-
-                # При сохранении автоматически вызовется upload_to
-                photo.save()
-
-                # Обработка тегов
-                tags_text = form.cleaned_data.get('tags', '')
-                if tags_text:
-                    tags_list = [
-                        tag.strip() for tag in tags_text.split(',')
-                        if tag.strip()
-                    ]
-                    photo.tags.add(*tags_list)
-
-                return redirect('photo_detail_slug', slug=photo.slug)
-            except Exception as e:
-                messages.error(request, f'Ошибка при загрузке: {str(e)}')
-        else:
-            messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
-    else:
-        form = PhotoUploadForm()
-
-    return render(
-        request, 'photos/upload_photo_non_model.html', {
-            'form':
-            form,
-            'form_type':
-            'Form',
-            'form_description':
-            'Форма НЕ связанная с моделью (также использует upload_to)'
-        })
-
-
-def edit_photo(request, slug):
-    """Function-based view для редактирования (оставлен для совместимости)"""
-    photo = get_object_or_404(Photo, slug=slug)
-
-    if photo.uploaded_by != request.user and not request.user.is_staff:
-        messages.error(request,
-                       'У вас нет прав для редактирования этой фотографии.')
-        return redirect('photo_detail_slug', slug=slug)
-
-    if request.method == 'POST':
-        form = PhotoForm(request.POST, request.FILES, instance=photo)
-        if form.is_valid():
-            try:
-                # При сохранении новое изображение будет обработано через upload_to
-                updated_photo = form.save()
-
-                # Обработка тегов
-                tags_text = form.cleaned_data.get('tags', '')
-                updated_photo.tags.clear()
-                if tags_text:
-                    tags_list = [
-                        tag.strip() for tag in tags_text.split(',')
-                        if tag.strip()
-                    ]
-                    updated_photo.tags.add(*tags_list)
-
-                messages.success(request, 'Фотография успешно обновлена!')
-                return redirect('photo_detail_slug', slug=updated_photo.slug)
-            except Exception as e:
-                messages.error(request, f'Ошибка при обновлении: {str(e)}')
-        else:
-            messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
-    else:
-        initial_data = {
-            'tags': ', '.join([tag.name for tag in photo.tags.all()])
-        }
-        form = PhotoForm(instance=photo, initial=initial_data)
-
-    return render(request, 'photos/edit_photo.html', {
+        form = CommentForm(instance=comment)
+    
+    context = {
         'form': form,
-        'photo': photo
-    })
-
-
-def delete_photo(request, slug):
-    """Function-based view для удаления (оставлен для совместимости)"""
-    photo = get_object_or_404(Photo, slug=slug)
-
-    # Убираем проверку прав пользователя
-    # if photo.uploaded_by != request.user and not request.user.is_staff:
-    #     messages.error(request, 'У вас нет прав для удаления этой фотографии.')
-    #     return redirect('photo_detail_slug', slug=slug)
-
-    if request.method == 'POST':
-        try:
-            # Удаляем файл из хранилища
-            if photo.image:
-                default_storage.delete(photo.image.name)
-            photo.delete()
-            messages.success(request, 'Фотография успешно удалена!')
-            return redirect('photo_list')
-        except Exception as e:
-            messages.error(request, f'Ошибка при удалении: {str(e)}')
-
-    return render(request, 'photos/delete_photo.html', {'photo': photo})
-
-
-# Остальные function-based views остаются без изменений...
-def photos_by_year(request, year):
-    photos = Photo.objects.filter(uploaded_at__year=year)
-    years = Photo.objects.dates('uploaded_at',
-                                'year').values_list('uploaded_at__year',
-                                                    flat=True)
-    return render(request, 'photos/photos_by_year.html', {
-        'photos': photos,
-        'year': year,
-        'years': years
-    })
-
-
-def photos_by_category(request, category_slug):
-    category = get_object_or_404(Category, slug=category_slug)
-    photos = Photo.objects.filter(category_type=category_slug.upper())
-
-    return render(request, 'photos/photos_by_category.html', {
-        'photos': photos,
-        'category_type': category_slug
-    })
-
-
-def home(request):
-    recent_photos = Photo.custom.get_recent(5)
-    return render(request, 'photos/home.html',
-                  {'recent_photos': recent_photos})
-
-
-def photo_list(request):
-    sort_by = request.GET.get('sort', '-uploaded_at')
-    category_filter = request.GET.get('category_type', None)
-    tag_filter = request.GET.get('tag', None)
-
-    photos = Photo.objects.all()
-
-    if category_filter:
-        photos = photos.filter(category_type=category_filter)
-
-    if tag_filter:
-        photos = photos.filter(tags__name=tag_filter)
-
-    photos = photos.order_by(sort_by)
-
-    years = Photo.objects.dates('uploaded_at',
-                                'year').values_list('uploaded_at__year',
-                                                    flat=True)
-    categories = Category.objects.all()
-    popular_tags = Photo.tags.most_common()[:10]
-
-    category_counts = []
-    for category_type, category_name in PhotoCategory.choices():
-        count = Photo.objects.filter(category_type=category_type).count()
-        category_counts.append(count)
-
-    avg_photos_per_category = sum(category_counts) / len(
-        category_counts) if category_counts else 0
-
-    stats = {
-        'total_photos':
-        Photo.objects.count(),
-        'avg_photos_per_category':
-        avg_photos_per_category,
-        'latest_photo':
-        Photo.objects.latest('uploaded_at')
-        if Photo.objects.exists() else None,
-        'earliest_photo':
-        Photo.objects.earliest('uploaded_at')
-        if Photo.objects.exists() else None,
+        'comment': comment,
+        'title': 'Редактировать комментарий'
     }
-
-    return render(
-        request, 'photos/photo_list.html', {
-            'photos': photos,
-            'years': years,
-            'categories': categories,
-            'popular_tags': popular_tags,
-            'current_category': category_filter,
-            'current_tag': tag_filter,
-            'current_sort': sort_by,
-            'stats': stats
-        })
-
-
-def photo_detail(request, pk=None, slug=None):
-    if pk:
-        try:
-            photo = Photo.objects.get(pk=pk)
-        except Photo.DoesNotExist:
-            raise Http404("Фотография не найдена")
-    elif slug:
-        try:
-            photo = Photo.objects.get(slug=slug)
-        except Photo.DoesNotExist:
-            raise Http404("Фотография не найдена")
-    else:
-        raise Http404("Неверный запрос")
-
-    prev_photo = photo.get_previous_photo()
-    next_photo = photo.get_next_photo()
-    related_photos = photo.get_related_photos()
-
-    # Убираем функциональность комментариев
-    if request.method == 'POST' and request.user.is_authenticated:
-        comment_form = CommentForm(request.POST)
-        if comment_form.is_valid():
-            try:
-                comment = comment_form.save(commit=False)
-                comment.photo = photo
-                comment.user = request.user
-                comment.save()
-                messages.success(request, 'Комментарий добавлен!')
-                return redirect('photo_detail_slug', slug=photo.slug)
-            except Exception as e:
-                messages.error(request,
-                               f'Ошибка при добавлении комментария: {str(e)}')
-        else:
-            messages.error(request,
-                           'Пожалуйста, исправьте ошибки в комментарии.')
-    else:
-        comment_form = CommentForm()
-
-    comments = photo.comments.all()
-
-    return render(
-        request, 'photos/photo_detail.html', {
-            'photo': photo,
-            'prev_photo': prev_photo,
-            'next_photo': next_photo,
-            'related_photos': related_photos,
-            'comments': comments,
-            'comment_form': comment_form
-        })
-
-
-def photos_by_tag(request, tag_slug):
-    """Фотографии по тегу с поддержкой кириллицы"""
-    from taggit.models import Tag # type: ignore
-    from django.utils.text import slugify
-
-    try:
-        # Сначала пробуем найти по точному slug
-        tag = Tag.objects.get(slug=tag_slug)
-        photos = Photo.objects.filter(tags__slug=tag_slug).distinct()
-        tag_name = tag.name
-    except Tag.DoesNotExist:
-        try:
-            # Если не найден, пробуем найти по имени (для кириллических тегов)
-            # Преобразуем slug обратно в возможное имя
-            possible_name = tag_slug.replace('-', ' ')
-            tag = Tag.objects.get(name__iexact=possible_name)
-            photos = Photo.objects.filter(
-                tags__name__iexact=possible_name).distinct()
-            tag_name = tag.name
-        except Tag.DoesNotExist:
-            # Если тег не найден вообще
-            photos = Photo.objects.none()
-            tag_name = tag_slug.replace('-', ' ')
-
-    return render(request, 'photos/photos_by_tag.html', {
-        'photos': photos,
-        'tag': {
-            'name': tag_name,
-            'slug': tag_slug
-        }
-    })
-
-
-def tag_list(request):
-    from taggit.models import Tag # type: ignore
-    from django.db.models import Count
-
-    tags = Tag.objects.annotate(
-        photo_count=Count('taggit_taggeditem_items')).order_by('-photo_count')
-
-    stats = {
-        'total_tags':
-        tags.count(),
-        'max_photos':
-        tags.aggregate(Max('photo_count'))['photo_count__max']
-        if tags.exists() else 0,
-        'avg_photos':
-        tags.aggregate(Avg('photo_count'))['photo_count__avg']
-        if tags.exists() else 0,
-    }
-
-    return render(request, 'photos/tag_list.html', {
-        'tags': tags,
-        'stats': stats
-    })
-
-
-def stats_view(request):
-    total_photos = Photo.objects.count()
-
-    categories_with_counts = []
-    categories_with_percentages = []
-
-    for category_type, category_name in PhotoCategory.choices():
-        count = Photo.objects.filter(category_type=category_type).count()
-        categories_with_counts.append({
-            'name': category_name,
-            'photo_count': count
-        })
-
-        if total_photos > 0:
-            percentage = (count * 100.0) / total_photos
-        else:
-            percentage = 0
-
-        categories_with_percentages.append({
-            'name': category_name,
-            'photo_count': count,
-            'percentage': percentage
-        })
-
-    photos_per_year = Photo.objects.annotate(
-        year=ExtractYear('uploaded_at')).values('year').annotate(
-            count=Count('id'),
-            percentage=ExpressionWrapper(
-                Count('id') * Value(100.0) /
-                Value(total_photos) if total_photos > 0 else Value(0.0),
-                output_field=FloatField())).order_by('year')
-
-    photos_with_age = Photo.objects.annotate(
-        age=ExpressionWrapper(Value(date.today().year) -
-                              ExtractYear('uploaded_at'),
-                              output_field=IntegerField()))
-
-    latest_photo = Photo.objects.latest(
-        'uploaded_at') if Photo.objects.exists() else None
-    earliest_photo = Photo.objects.earliest(
-        'uploaded_at') if Photo.objects.exists() else None
-
-    first_photo = Photo.objects.order_by('id').first()
-    last_photo = Photo.objects.order_by('id').last()
-
-    return render(
-        request, 'photos/stats.html', {
-            'total_photos': total_photos,
-            'categories_with_counts': categories_with_counts,
-            'categories_with_percentages': categories_with_percentages,
-            'photos_per_year': photos_per_year,
-            'photos_with_age': photos_with_age,
-            'latest_photo': latest_photo,
-            'earliest_photo': earliest_photo,
-            'first_photo': first_photo,
-            'last_photo': last_photo,
-        })
+    return render(request, 'photos/edit_comment.html', context)

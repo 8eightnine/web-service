@@ -32,21 +32,19 @@ class RegisterUser(CreateView):
     def form_valid(self, form):
         """Обработка успешной регистрации"""
         try:
-            with transaction.atomic():
-                # Сохраняем пользователя (профиль создастся автоматически через сигнал)
-                user = form.save()
-                
-                # Автоматически входим в систему после регистрации
-                login(self.request, user)
-                
-                messages.success(
-                    self.request, 
-                    f'Добро пожаловать, {user.get_full_name() or user.username}! '
-                    'Ваш аккаунт успешно создан.'
-                )
-                
-                return HttpResponseRedirect(self.get_success_url())
-                
+            # Сохраняем пользователя
+            user = form.save()
+            
+            # Создаем профиль вручную
+            Profile.objects.get_or_create(user=user)
+            
+            # Входим в систему
+            user.backend = 'django.contrib.auth.backends.ModelBackend'
+            login(self.request, user)
+            
+            messages.success(self.request, 'Регистрация прошла успешно!')
+            return redirect(self.success_url)
+            
         except Exception as e:
             messages.error(self.request, f'Ошибка при регистрации: {str(e)}')
             return self.form_invalid(form)

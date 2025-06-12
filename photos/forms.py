@@ -226,8 +226,12 @@ class CommentForm(forms.ModelForm):
             'text': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 4,
-                'placeholder': 'Введите ваш комментарий'
+                'placeholder': 'Введите ваш комментарий...',
+                'required': True
             })
+        }
+        labels = {
+            'text': 'Комментарий'
         }
 
     def __init__(self, *args, **kwargs):
@@ -243,4 +247,3 @@ class CommentForm(forms.ModelForm):
         if text and len(text.strip()) < 5:
             raise ValidationError('Комментарий после удаления пробелов слишком короткий')
         return text.strip() if text else text
-

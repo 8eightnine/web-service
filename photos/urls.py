@@ -42,4 +42,7 @@ urlpatterns = [
     re_path(r'^tag/(?P<tag_slug>[\w\-а-яё]+)/$',
             views.PhotosByTagView.as_view(),
             name='photos_by_tag'),
+    # Маршруты для комментариев
+    path('comment/<int:comment_id>/delete/', views.delete_comment, name='delete_comment'),
+    path('comment/<int:comment_id>/edit/', views.edit_comment, name='edit_comment'),
 ]

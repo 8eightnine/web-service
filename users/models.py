@@ -5,20 +5,16 @@ from django.dispatch import receiver
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    bio = models.TextField(max_length=500, blank=True, verbose_name="О себе")
-    avatar = models.ImageField(
-        upload_to='avatars/', 
-        blank=True, 
-        verbose_name="Аватар",
-        help_text="Рекомендуемый размер: 300x300 пикселей"
-    )
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
+    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Пользователь')
+    bio = models.TextField('О себе', max_length=500, blank=True)
+    birth_date = models.DateField('Дата рождения', null=True, blank=True)
+    avatar = models.ImageField('Аватар', upload_to='avatars/', blank=True, null=True)
+    created_at = models.DateTimeField('Дата создания', auto_now_add=True)
+    updated_at = models.DateTimeField('Дата обновления', auto_now=True)
 
     class Meta:
-        verbose_name = "Профиль"
-        verbose_name_plural = "Профили"
+        verbose_name = 'Профиль'
+        verbose_name_plural = 'Профили'
         
         # Добавляем пользовательские разрешения
         permissions = [
@@ -28,23 +24,13 @@ class Profile(models.Model):
         ]
 
     def __str__(self):
-        return f"Профиль {self.user.username}"
+        return f'Профиль пользователя {self.user.username}'
 
     def get_full_name(self):
-        """Возвращает полное имя пользователя или username"""
-        full_name = self.user.get_full_name()
-        return full_name if full_name else self.user.username
+        return f'{self.user.first_name} {self.user.last_name}'.strip() or self.user.username
 
-
-@receiver(post_save, sender=User)
-def create_or_update_user_profile(sender, instance, created, **kwargs):
-    """Автоматически создает или обновляет профиль при создании/сохранении пользователя"""
-    if created:
-        # Создаем профиль только если он не существует
-        Profile.objects.get_or_create(user=instance)
-    else:
-        # Обновляем существующий профиль или создаем новый
-        if hasattr(instance, 'profile'):
-            instance.profile.save()
-        else:
-            Profile.objects.get_or_create(user=instance)
+    @classmethod
+    def get_or_create_for_user(cls, user):
+        """Получить или создать профиль для пользователя"""
+        profile, created = cls.objects.get_or_create(user=user)
+        return profile

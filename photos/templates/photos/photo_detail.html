@@ -15,11 +15,66 @@
                 <span class="upload-date">Дата загрузки: {{ photo.uploaded_at|date:"d.m.Y H:i" }}</span>
             </div>
             
+            <!-- Секция лайков/дизлайков -->
+            <div class="photo-reactions mb-4 p-3 border rounded bg-light">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="reaction-stats">
+                            <span class="badge bg-success me-2">
+                                <i class="fas fa-thumbs-up"></i> {{ photo.get_likes_count }}
+                            </span>
+                            <span class="badge bg-danger me-2">
+                                <i class="fas fa-thumbs-down"></i> {{ photo.get_dislikes_count }}
+                            </span>
+                            <span class="badge bg-info">
+                                Рейтинг: {{ photo.get_total_likes }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        {% if user.is_authenticated %}
+                            <div class="reaction-buttons text-end">
+                                <form method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" name="like_action" value="1" 
+                                            class="btn btn-outline-success {% if user_reaction == 1 %}active{% endif %}">
+                                        <i class="fas fa-thumbs-up"></i> Нравится
+                                    </button>
+                                </form>
+                                <form method="post" class="d-inline ms-2">
+                                    {% csrf_token %}
+                                    <button type="submit" name="like_action" value="-1" 
+                                            class="btn btn-outline-danger {% if user_reaction == -1 %}active{% endif %}">
+                                        <i class="fas fa-thumbs-down"></i> Не нравится
+                                    </button>
+                                </form>
+                            </div>
+                        {% else %}
+                            <div class="text-end">
+                                <small class="text-muted">
+                                    <a href="{% url 'users:login' %}">Войдите</a>, чтобы оценить фотографию
+                                </small>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
             <!-- Action buttons for photo owner or staff -->
             {% if user.is_authenticated %}
-                {% if user.groups.all %}
+                {% if photo.uploaded_by == user or user.is_staff %}
+                    <div class="photo-actions">
+                        <a href="{% url 'edit_photo' photo.slug %}" class="edit-btn">
+                        Редактировать
+                        </a>
+                        <a href="{% url 'delete_photo' photo.slug %}" class="delete-btn" 
+                            onclick="return confirm('Вы уверены, что хотите удалить эту фотографию?')">
+                            Удалить
+                        </a>
+                    </div>
+                {% else %}
                     {% for group in user.groups.all %}
-                        {% if group.name == "Редакторы" or photo.uploaded_by == user %}
+                        {% if group.name == "Редакторы"%}
                             <div class="photo-actions">
                                 <a href="{% url 'edit_photo' photo.slug %}" class="edit-btn">
                                 Редактировать
@@ -100,8 +155,12 @@
                     <h4>Добавить комментарий:</h4>
                     <form method="post">
                         {% csrf_token %}
-                        {{ comment_form.as_p }}
-                        <button type="submit" class="btn btn-primary">Отправить</button>
+                        <div class="mb-3">
+                            {{ comment_form.text }}
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Отправить
+                        </button>
                     </form>
                 </div>
             {% else %}
@@ -111,14 +170,82 @@
             <!-- Comments list -->
             <div class="comments-list">
                 {% for comment in comments %}
-                    <div class="comment">
-                        <div class="comment-header">
-                            <span class="comment-author">{{ comment.user.username }}</span>
-                            <span class="comment-date">{{ comment.created_at|date:"d.m.Y H:i" }}</span>
+                    <div class="comment mb-3 p-3 border rounded" id="comment-{{ comment.id }}">
+                        <div class="comment-header d-flex justify-content-between align-items-start mb-2">
+                            <div class="comment-author">
+                                <strong>{{ comment.user.get_full_name|default:comment.user.username }}</strong>
+                                <small class="comment-date text-muted">{{ comment.created_at|date:"d.m.Y H:i" }}</small>
+                            </div>
+                            
+                            {% if user.is_authenticated and comment.user == user or user.is_staff %}
+                                <div class="comment-actions">
+                                    <!-- <a href="{% url 'edit_comment' comment.id %}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-edit"></i>
+                                    </a> -->
+                                    <a href="{% url 'delete_comment' comment.id %}" 
+                                       class="btn btn-sm btn-outline-danger"
+                                       onclick="return confirm('Удалить комментарий?')">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            {% endif %}
                         </div>
+                        
                         <div class="comment-body">
-                            {{ comment.text }}
+                            {{ comment.text|linebreaks }}
                         </div>
+                        
+                        {% if user.is_authenticated %}
+                            <div class="comment-reply mt-2">
+                                <button class="btn btn-sm btn-link reply-btn" data-comment-id="{{ comment.id }}">
+                                    <i class="fas fa-reply"></i> Ответить
+                                </button>
+                            </div>
+                            
+                            <!-- Форма ответа (скрыта по умолчанию) -->
+                            <div class="reply-form mt-2" id="reply-form-{{ comment.id }}" style="display: none;">
+                                <form method="post" class="comment-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                                    <div class="mb-2">
+                                        <textarea name="text" class="form-control" rows="3" 
+                                                 placeholder="Ваш ответ..." required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-sm btn-primary">Ответить</button>
+                                    <button type="button" class="btn btn-sm btn-secondary cancel-reply">Отмена</button>
+                                </form>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Ответы на комментарий -->
+                        {% if comment.get_replies %}
+                            <div class="replies mt-3 ms-4">
+                                {% for reply in comment.get_replies %}
+                                    <div class="reply mb-2 p-2 bg-light rounded">
+                                        <div class="reply-header d-flex justify-content-between align-items-start mb-1">
+                                            <div class="reply-author">
+                                                <strong>{{ reply.user.get_full_name|default:reply.user.username }}</strong>
+                                                <small class="text-muted">{{ reply.created_at|date:"d.m.Y H:i" }}</small>
+                                            </div>
+                                            
+                                            {% if user.is_authenticated and reply.user == user or user.is_staff %}
+                                                <div class="reply-actions">
+                                                    <a href="{% url 'delete_comment' reply.id %}" 
+                                                       class="btn btn-sm btn-outline-danger"
+                                                       onclick="return confirm('Удалить ответ?')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </a>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="reply-text">
+                                            {{ reply.text|linebreaks }}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
                 {% empty %}
                     <p>Нет комментариев. Будьте первым!</p>
@@ -131,4 +258,24 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработка кнопок "Ответить"
+    document.querySelectorAll('.reply-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const commentId = this.dataset.commentId;
+            const replyForm = document.getElementById('reply-form-' + commentId);
+            replyForm.style.display = replyForm.style.display === 'none' ? 'block' : 'none';
+        });
+    });
+    
+    // Обработка кнопок "Отмена"
+    document.querySelectorAll('.cancel-reply').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            this.closest('.reply-form').style.display = 'none';
+        });
+    });
+});
+</script>
 {% endblock %}

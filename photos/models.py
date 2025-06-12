@@ -2,8 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 from enum import Enum
-from django.db.models import Count, F, Q, Value, ExpressionWrapper
-from django.db.models.functions import ExtractYear
+from django.db.models import Count, Q
 from taggit.managers import TaggableManager # type: ignore
 import uuid
 import os
@@ -152,6 +151,30 @@ class Photo(models.Model):
         if self.uploaded_by:
             return f"/users/profile/{self.uploaded_by.username}/"
         return None
+    
+    def get_likes_count(self):
+        """Количество лайков"""
+        return self.likes.filter(value=1).count()
+
+    def get_dislikes_count(self):
+        """Количество дизлайков"""
+        return self.likes.filter(value=-1).count()
+
+    def get_total_likes(self):
+        """Общий рейтинг (лайки - дизлайки)"""
+        return self.likes.aggregate(
+            total=models.Sum('value')
+        )['total'] or 0
+
+    def user_reaction(self, user):
+        """Получить реакцию пользователя на фото"""
+        if user.is_authenticated:
+            try:
+                return self.likes.get(user=user).value
+            except PhotoLike.DoesNotExist:
+                return None
+        return None
+
 
     def __str__(self):
         return self.title
@@ -162,16 +185,12 @@ class Photo(models.Model):
 
 
 class Comment(models.Model):
-    photo = models.ForeignKey(Photo,
-                              on_delete=models.CASCADE,
-                              related_name='comments',
-                              verbose_name="Фотография")
-    user = models.ForeignKey(User,
-                             on_delete=models.CASCADE,
-                             verbose_name="Пользователь")
-    text = models.TextField(verbose_name="")
-    created_at = models.DateTimeField(auto_now_add=True,
-                                      verbose_name="Дата создания")
+    photo = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name='comments', verbose_name="Фотография")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь")
+    text = models.TextField(verbose_name="Текст комментария")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, 
+                              related_name='replies', verbose_name='Родительский комментарий')
 
     class Meta:
         ordering = ['-created_at']
@@ -180,3 +199,27 @@ class Comment(models.Model):
 
     def __str__(self):
         return f'Comment by {self.user.username} on {self.photo.title}'
+    
+    def get_replies(self):
+        """Получить ответы на комментарий"""
+        return self.replies.all().order_by('created_at')
+
+class PhotoLike(models.Model):
+    LIKE_CHOICES = [
+        (1, 'Лайк'),
+        (-1, 'Дизлайк'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Пользователь')
+    photo = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name='likes', verbose_name='Фотография')
+    value = models.SmallIntegerField('Значение', choices=LIKE_CHOICES)
+    created_at = models.DateTimeField('Дата создания', auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('user', 'photo')
+        verbose_name = 'Лайк/Дизлайк'
+        verbose_name_plural = 'Лайки/Дизлайки'
+    
+    def __str__(self):
+        action = "лайкнул" if self.value == 1 else "дизлайкнул"
+        return f'{self.user.username} {action} {self.photo.title}'
