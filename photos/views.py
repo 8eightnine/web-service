@@ -18,7 +18,7 @@ class RedirectToHomeView(View):
     """Перенаправление на главную страницу"""
 
     def get(self, request, *args, **kwargs):
-        return redirect('photo_list')
+        return redirect('photos:photo_list')
 
 
 class SimplePhotoView(View):
@@ -232,7 +232,7 @@ class DeletePhotoView(DataMixin, DeleteView):
             return redirect(success_url)
         except Exception as e:
             messages.error(request, f'Ошибка при удалении: {str(e)}')
-            return redirect('photo_detail_slug', slug=self.object.slug)
+            return redirect('photos:photo_detail_slug', slug=self.object.slug)
 
 
 class PhotosByYearView(DataMixin, ListView):
@@ -421,7 +421,7 @@ class PhotoDetailView(DataMixin, DetailView):
         if 'like_action' in request.POST:
             if not request.user.is_authenticated:
                 messages.warning(request, 'Для оценки фотографий необходимо войти в систему.')
-                return redirect('photo_detail_slug', slug=photo.slug)
+                return redirect('photos:photo_detail_slug', slug=photo.slug)
             
             action = request.POST.get('like_action')
             try:
@@ -442,12 +442,12 @@ class PhotoDetailView(DataMixin, DetailView):
                 action_text = 'лайк' if int(action) == 1 else 'дизлайк'
                 messages.success(request, f'Поставлен {action_text}!')
             
-            return redirect('photo_detail_slug', slug=photo.slug)
+            return redirect('photos:photo_detail_slug', slug=photo.slug)
         
         # Обработка комментариев (существующий код)
         if not request.user.is_authenticated:
             messages.warning(request, 'Для добавления комментариев необходимо войти в систему.')
-            return redirect('photo_detail_slug', slug=photo.slug)
+            return redirect('photos:photo_detail_slug', slug=photo.slug)
         
         comment_form = CommentForm(request.POST)
         
@@ -474,7 +474,7 @@ class PhotoDetailView(DataMixin, DetailView):
         else:
             messages.error(request, 'Пожалуйста, исправьте ошибки в комментарии.')
         
-        return redirect('photo_detail_slug', slug=photo.slug)
+        return redirect('photos:photo_detail_slug', slug=photo.slug)
 
 
 class PhotosByTagView(DataMixin, ListView):
@@ -627,13 +627,13 @@ def delete_comment(request, comment_id):
     # Проверяем права на удаление
     if comment.user != request.user and not request.user.is_staff:
         messages.error(request, 'У вас нет прав для удаления этого комментария.')
-        return redirect('photo_detail_slug', slug=comment.photo.slug)
+        return redirect('photos:photo_detail_slug', slug=comment.photo.slug)
     
     photo_slug = comment.photo.slug
     comment.delete()
     messages.success(request, 'Комментарий удален!')
     
-    return redirect('photo_detail_slug', slug=photo_slug)
+    return redirect('photos:photo_detail_slug', slug=photo_slug)
 
 @login_required 
 def edit_comment(request, comment_id):
@@ -643,14 +643,14 @@ def edit_comment(request, comment_id):
     # Проверяем права на редактирование
     if comment.user != request.user and not request.user.is_staff:
         messages.error(request, 'У вас нет прав для редактирования этого комментария.')
-        return redirect('photo_detail_slug', slug=comment.photo.slug)
+        return redirect('photos:photo_detail_slug', slug=comment.photo.slug)
     
     if request.method == 'POST':
         form = CommentForm(request.POST, instance=comment)
         if form.is_valid():
             form.save()
             messages.success(request, 'Комментарий обновлен!')
-            return redirect('photo_detail_slug', slug=comment.photo.slug)
+            return redirect('photos:photo_detail_slug', slug=comment.photo.slug)
     else:
         form = CommentForm(instance=comment)
     
