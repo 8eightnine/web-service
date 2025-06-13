@@ -36,14 +36,14 @@
                 <button type="submit" class="btn btn-danger" style="margin-right: 10px;">
                     Да, удалить фотографию
                 </button>
-                <a href="{% url 'photo_detail_slug' photo.slug %}" class="btn btn-secondary">
+                <a href="{% url 'photos:photo_detail_slug' photo.slug %}" class="btn btn-secondary">
                     Отмена
                 </a>
             </div>
         </form>
         
         <div class="back-link" style="margin-top: 20px;">
-            <a href="{% url 'photo_list' %}">Назад к списку фотографий</a>
+            <a href="{% url 'photos:photo_list' %}">Назад к списку фотографий</a>
         </div>
     </div>
 </div>

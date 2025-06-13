@@ -58,7 +58,7 @@
                         {% endif %}
 
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="{% url 'photo_detail_slug' photo.slug %}" class="btn btn-secondary me-md-2">Отмена</a>
+                            <a href="{% url 'photos:photo_detail_slug' photo.slug %}" class="btn btn-secondary me-md-2">Отмена</a>
                             <button type="submit" class="btn btn-success">
                                 <i class="fas fa-save"></i> Сохранить изменения
                             </button>

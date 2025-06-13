@@ -18,7 +18,7 @@
             <div class="stat-item">
                 <span class="stat-label">Последняя загрузка:</span>
                 <span class="stat-value">
-                    <a href="{% url 'photo_detail_slug' latest_photo.slug %}">
+                    <a href="{% url 'photos:photo_detail_slug' latest_photo.slug %}">
                         {{ latest_photo.title|truncatechars:20 }} ({{ latest_photo.uploaded_at|date:"d.m.Y" }})
                     </a>
                 </span>
@@ -29,7 +29,7 @@
             <div class="stat-item">
                 <span class="stat-label">Самая ранняя загрузка:</span>
                 <span class="stat-value">
-                    <a href="{% url 'photo_detail_slug' earliest_photo.slug %}">
+                    <a href="{% url 'photos:photo_detail_slug' earliest_photo.slug %}">
                         {{ earliest_photo.title|truncatechars:20 }} ({{ earliest_photo.uploaded_at|date:"d.m.Y" }})
                     </a>
                 </span>
@@ -40,7 +40,7 @@
             <div class="stat-item">
                 <span class="stat-label">Первая фотография (по ID):</span>
                 <span class="stat-value">
-                    <a href="{% url 'photo_detail_slug' first_photo.slug %}">
+                    <a href="{% url 'photos:photo_detail_slug' first_photo.slug %}">
                         {{ first_photo.title|truncatechars:20 }} (ID: {{ first_photo.id }})
                     </a>
                 </span>
@@ -51,7 +51,7 @@
             <div class="stat-item">
                 <span class="stat-label">Последняя фотография (по ID):</span>
                 <span class="stat-value">
-                    <a href="{% url 'photo_detail_slug' last_photo.slug %}">
+                    <a href="{% url 'photos:photo_detail_slug' last_photo.slug %}">
                         {{ last_photo.title|truncatechars:20 }} (ID: {{ last_photo.id }})
                     </a>
                 </span>
@@ -159,7 +159,7 @@
     </div>
     
     <div class="back-link">
-        <a href="{% url 'photo_list' %}">Назад к списку фотографий</a>
+        <a href="{% url 'photos:photo_list' %}">Назад к списку фотографий</a>
     </div>
 </div>
 {% endblock %}

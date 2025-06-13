@@ -6,8 +6,8 @@
 <div class="welcome-section">
     <h1>Добро пожаловать на сайт обмена фотографиями!</h1>
     <div class="welcome-actions">
-        <a href="{% url 'photo_list' %}" class="btn">Список фотографий</a>
-        <a href="{% url 'upload_photo' %}" class="btn">Загрузить фотографию</a>
+        <a href="{% url 'photos:photo_list' %}" class="btn">Список фотографий</a>
+        <a href="{% url 'photos:upload_photo' %}" class="btn">Загрузить фотографию</a>
     </div>
 </div>
 {% endblock %}

@@ -14,7 +14,7 @@
         <div class="photo-grid">
             {% for photo in photos %}
                 <div class="photo-item">
-                    <a href="{% url 'photo_detail' photo.pk %}">
+                    <a href="{% url 'photos:photo_detail' photo.pk %}">
                         <img src="{{ photo.image.url }}" alt="{{ photo.title }}" style="width: 200px; height: auto;">
                         <h3>{{ photo.title }}</h3>
                     </a>
@@ -26,7 +26,7 @@
         <p>Нет фотографий за {{ year }} год.</p>
     {% endif %}
     
-    <p><a href="{% url 'photo_list' %}">Назад к списку фотографий</a></p>
+    <p><a href="{% url 'photos:photo_list' %}">Назад к списку фотографий</a></p>
 </body>
 </html>
 {% endblock %}

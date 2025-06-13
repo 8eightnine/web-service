@@ -13,7 +13,7 @@
     
     <div class="photo-grid">
         {% for photo in photos %}
-            <a href="{% if photo.slug %}{% url 'photo_detail_slug' photo.slug %}{% else %}{% url 'photo_detail' photo.pk %}{% endif %}" class="photo-card-link">
+            <a href="{% if photo.slug %}{% url 'photos:photo_detail_slug' photo.slug %}{% else %}{% url 'photos:photo_detail' photo.pk %}{% endif %}" class="photo-card-link">
                 <div class="photo-card">
                     <h2>{{ photo.title|truncate_title }}</h2>
                     <img src="{{ photo.image.url }}" alt="{{ photo.title }}">
@@ -34,7 +34,7 @@
     </div>
     
     <div class="back-link">
-        <a href="{% url 'photo_list' %}">Назад к списку фотографий</a>
+        <a href="{% url 'photos:photo_list' %}">Назад к списку фотографий</a>
     </div>
 </div>
 {% endblock %}

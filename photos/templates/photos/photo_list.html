@@ -9,28 +9,9 @@
         <div class="col-md-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1>{{ title|default:"Все фотографии" }}</h1>
-                <!-- {% if user.is_authenticated %}
-                    <div>
-                        <a href="{% url 'upload_photo' %}" class="btn btn-success me-2">
-                            <i class="fas fa-plus"></i> Добавить фото
-                        </a>
-                        <a href="{% url 'users:profile_view' %}" class="btn btn-outline-primary">
-                            <i class="fas fa-user"></i> Мой профиль
-                        </a>
-                    </div>
-                {% else %}
-                    <div>
-                        <a href="{% url 'users:login' %}" class="btn btn-primary me-2">
-                            <i class="fas fa-sign-in-alt"></i> Войти
-                        </a>
-                        <a href="{% url 'upload_photo' %}" class="btn btn-success">
-                            <i class="fas fa-plus"></i> Добавить фото
-                        </a>
-                    </div>
-                {% endif %} -->
             </div>
             
-            <!-- Filters and sorting -->
+            <!-- Фильтры -->
             <div class="filters mb-4">
                 <form method="get" class="row g-3">
                     <div class="col-md-3">
@@ -65,19 +46,18 @@
                 </form>
             </div>
 
-            <!-- Photos grid -->
+            <!-- Сетка фотографий -->
             <div class="photos-table-container">
                 {% if photos %}
                     <div class="photo-grid">
                         {% for photo in photos %}
                             <div class="photo-card">
-                                <a href="{% url 'photo_detail_slug' photo.slug %}" class="photo-card-link">
+                                <a href="{% url 'photos:photo_detail_slug' photo.slug %}" class="photo-card-link">
                                     <div class="photo-card-image">
                                         <img src="{{ photo.image.url }}" alt="{{ photo.title }}" loading="lazy">
                                     </div>
                                     <div class="photo-card-content">
                                         <h2>{{ photo.title|truncatechars:30 }}</h2>
-                                        <!-- <p class="photo-card-description">{{ photo.description|truncatechars:80 }}</p> -->
                                         <div class="photo-meta">
                                             <div class="tags-container">
                                                 {% for tag in photo.tags.all|slice:":3" %}
@@ -106,14 +86,14 @@
                                     </div>
                                 </a>
                                 
-                                <!-- Action buttons for authenticated users -->
+                                <!-- Кнопки действий -->
                                 {% if user.is_authenticated and photo.uploaded_by == user or user.is_staff %}
                                     <div class="photo-actions mt-2">
                                         <div class="btn-group btn-group-sm" role="group">
-                                            <a href="{% url 'edit_photo' photo.slug %}" class="btn btn-outline-primary btn-sm">
+                                            <a href="{% url 'photos:edit_photo' photo.slug %}" class="btn btn-outline-primary btn-sm">
                                                 <i class="fas fa-edit"></i> Редактировать
                                             </a>
-                                            <a href="{% url 'delete_photo' photo.slug %}" class="btn btn-outline-danger btn-sm" 
+                                            <a href="{% url 'photos:delete_photo' photo.slug %}" class="btn btn-outline-danger btn-sm" 
                                                onclick="return confirm('Вы уверены, что хотите удалить эту фотографию?')">
                                                 <i class="fas fa-trash"></i> Удалить
                                             </a>
@@ -127,15 +107,15 @@
                     <div class="empty-state">
                         <div class="empty-state-icon">📷</div>
                         <h3>Фотографии не найдены</h3>
-                        <p>Попробуйте изменить фильтры или <a href="{% url 'upload_photo' %}">загрузить первую фотографию</a>.</p>
+                        <p>Попробуйте изменить фильтры или <a href="{% url 'photos:upload_photo' %}">загрузить первую фотографию</a>.</p>
                     </div>
                 {% endif %}
             </div>
 
-            <!-- Pagination -->
+            <!-- Пагинация -->
             {% include 'photos/pagination.html' %}
 
-            <!-- Statistics -->
+            <!-- Статистика -->
             {% if stats %}
             <div class="mt-5">
                 <h3>Статистика</h3>

@@ -13,7 +13,7 @@
     
     <div class="photo-grid">
         {% for photo in photos %}
-        <a href="{% url 'photo_detail_slug' photo.slug %}" class="photo-card-link">
+        <a href="{% url 'photos:photo_detail_slug' photo.slug %}" class="photo-card-link">
             <div class="photo-card">
                 <h2>{{ photo.title|truncate_title }}</h2>
                 <img src="{{ photo.image.url }}" alt="{{ photo.title }}">
@@ -33,7 +33,7 @@
                         {% endif %}
                     </p>
                     
-                    <!-- Display tags -->
+                    <!-- Теги -->
                     <div class="photo-tags">
                         <span class="tags-label">Теги:</span>
                         {% for tag in photo.tags.all|slice:":3" %}
@@ -52,8 +52,8 @@
     </div>
     
     <div class="back-link">
-        <a href="{% url 'tag_list' %}">Назад к списку тегов</a>
-        <a href="{% url 'photo_list' %}">Назад к списку фотографий</a>
+        <a href="{% url 'photos:tag_list' %}">Назад к списку тегов</a>
+        <a href="{% url 'photos:photo_list' %}">Назад к списку фотографий</a>
     </div>
 </div>
 {% endblock %}
