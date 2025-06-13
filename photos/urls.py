@@ -6,7 +6,7 @@ register_converter(converters.YearConverter, 'year')
 app_name = 'photos'  # Определяем namespace
 
 urlpatterns = [
-    # Class-based views
+    # CBV
     path('', views.PhotoListView.as_view(), name='photo_list'),
     path('<int:pk>/', views.PhotoDetailView.as_view(), name='photo_detail'),
     path('photo/<slug:slug>/',
@@ -32,14 +32,14 @@ urlpatterns = [
     path('redirect/',
          views.RedirectToHomeView.as_view(),
          name='redirect_to_home'),
-    # Simple View
+    # Простой View
     path('simple/', views.SimplePhotoView.as_view(), name='simple_photo_view'),
-    # Upload views
+    # Upload View
     path('upload/', views.UploadPhotoView.as_view(), name='upload_photo'),
     path('upload-non-model/',
          views.UploadPhotoNonModelView.as_view(),
          name='upload_photo_non_model'),
-    # Support for Cyrillic tags
+    # Кириллица
     re_path(r'^tag/(?P<tag_slug>[\w\-а-яё]+)/$',
             views.PhotosByTagView.as_view(),
             name='photos_by_tag'),

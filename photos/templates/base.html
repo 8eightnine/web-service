@@ -14,14 +14,14 @@
         <div class="container">
             <ul class="nav-list">
                 <li class="home-icon">
-                    <a href="{% url 'photo_list' %}">
+                    <a href="{% url 'photos:photo_list' %}">
                         <i class="fas fa-home"></i> Главная
                     </a>
                 </li>
-                <li><a href="{% url 'upload_photo' %}" class="btn btn-success">Загрузить фото</a></li>
-                <li><a href="{% url 'photo_list' %}">Все фотографии</a></li>  
-                <li><a href="{% url 'tag_list' %}">Теги</a></li>
-                <li><a href="{% url 'stats' %}">Статистика</a></li>
+                <li><a href="{% url 'photos:upload_photo' %}" class="btn btn-success">Загрузить фото</a></li>
+                <li><a href="{% url 'photos:photo_list' %}">Все фотографии</a></li>  
+                <li><a href="{% url 'photos:tag_list' %}">Теги</a></li>
+                <li><a href="{% url 'photos:stats' %}">Статистика</a></li>
                 
                 <!-- Пользовательское меню -->
                 <li class="ms-auto user-menu">
