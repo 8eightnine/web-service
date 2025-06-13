@@ -7,7 +7,6 @@ from .views import HomePageView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', HomePageView.as_view(), name='home'),  # Используем класс-представление
-    path('login/', views.login_page, name='login_page'),  # Если у вас есть эта функция
     path('photos/', include('photos.urls', namespace='photos')),  # Добавляем namespace
     path('users/', include('users.urls', namespace="users")),
 ]
