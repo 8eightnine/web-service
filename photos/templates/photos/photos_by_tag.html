@@ -15,9 +15,8 @@
         {% for photo in photos %}
         <a href="{% url 'photos:photo_detail_slug' photo.slug %}" class="photo-card-link">
             <div class="photo-card">
-                <h2>{{ photo.title|truncate_title }}</h2>
                 <img src="{{ photo.image.url }}" alt="{{ photo.title }}">
-                <div class="photo-card-content">
+                <!-- <div class="photo-card-content">
                     <p class="photo-card-description">{{ photo.description|truncatechars:50 }}</p>
                     <p class="photo-meta">
                         {% if photo.category %}
@@ -33,7 +32,7 @@
                         {% endif %}
                     </p>
                     
-                    <!-- Теги -->
+                    
                     <div class="photo-tags">
                         <span class="tags-label">Теги:</span>
                         {% for tag in photo.tags.all|slice:":3" %}
@@ -43,7 +42,7 @@
                             <span class="more-tags">+{{ photo.tags.count|add:"-3" }}</span>
                         {% endif %}
                     </div>
-                </div>
+                </div> -->
             </div>
         </a>
         {% empty %}
