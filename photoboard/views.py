@@ -83,8 +83,7 @@ def register_page(request):
 
 
 def home_page(request):
-    from photos import views as photos_views
-    return photos_views.PhotoListView.as_view()
+    return redirect('photos')
 
 
 def login_view(request):
