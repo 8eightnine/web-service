@@ -15,17 +15,18 @@
             <div class="filters mb-4">
                 <form method="get" class="row g-3">
                     <div class="col-md-3">
-                        <select name="category_type" class="form-select">
+                        <select name="category_type" id="category_type" class="form-select">
                             <option value="">Все категории</option>
-                            {% for category_type in categories %}
-                                <option value="{{ category_type }}" 
-                                    {% if current_category == category_type %}selected{% endif %}>
+                            {% for category_key, category_name in categories %}
+                                <option value="{{ category_key }}" 
+                                    {% if current_category == category_key %}selected{% endif %}>
+                                    {{ category_name }}
                                 </option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <select name="sort" class="form-select">
+                        <select name="sort" id="sort" class="form-select">
                             <option value="-uploaded_at" {% if current_sort == "-uploaded_at" %}selected{% endif %}>
                                 Новые первыми
                             </option>
@@ -41,7 +42,9 @@
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary">Применить</button>
+                        <div>
+                            <button type="submit" class="btn btn-primary">Применить</button>
+                        </div>
                     </div>
                 </form>
             </div>

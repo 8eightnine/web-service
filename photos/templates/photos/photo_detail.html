@@ -112,8 +112,6 @@
                 <h3>Категория:</h3>
                 {% if photo.category %}
                     <a href="{% url 'photos:photos_by_category' photo.category.slug %}" class="category-badge">{{ photo.category.name }}</a>
-                {% else %}
-                    <span>Без категории</span>
                 {% endif %}
                 <span class="category-type-badge">{{ photo.get_category_type_display }}</span>
             </div>

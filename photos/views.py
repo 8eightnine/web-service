@@ -322,8 +322,7 @@ class PhotoListView(DataMixin, ListView):
                                     'year').values_list('uploaded_at__year',
                                                         flat=True)
 
-        categories = PhotoCategory.choices(
-        )  # Это возвращает список кортежей (type, name)
+        categories = PhotoCategory.choices()  # Это возвращает список кортежей (type, name)
 
         popular_tags = Photo.tags.most_common()[:10]
 
@@ -352,7 +351,7 @@ class PhotoListView(DataMixin, ListView):
         return self.get_mixin_context(
             context,
             years=years,
-            categories=categories,  # Теперь это список кортежей
+            categories=categories,
             popular_tags=popular_tags,
             current_category=category_filter,
             current_tag=tag_filter,
