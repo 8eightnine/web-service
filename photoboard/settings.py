@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-u9jzh6cx^o3ug2wjn#*-7%xlo6qhnq60fi_bh-5vg+asnoerpi'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -193,3 +193,35 @@ LOGGING = {
         },
     },
 }
+
+# Настройки безопасности для продакшена
+if not DEBUG:
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    # Не включаем HSTS для Railway, так как они управляют HTTPS
+    # SECURE_HSTS_SECONDS = 3600
+    # SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+
+# CSRF настройки для Railway
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.railway.app',
+    'https://*.up.railway.app',
+]
+
+# Получаем конкретный домен от Railway
+if 'RAILWAY_PUBLIC_DOMAIN' in os.environ:
+    domain = os.environ['RAILWAY_PUBLIC_DOMAIN']
+    CSRF_TRUSTED_ORIGINS.append(f'https://{domain}')
+
+# Дополнительные CSRF настройки
+CSRF_COOKIE_SECURE = not DEBUG  # True в продакшене
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_USE_SESSIONS = False
+
+# Session настройки
+SESSION_COOKIE_SECURE = not DEBUG  # True в продакшене
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_AGE = 86400  # 24 часа
