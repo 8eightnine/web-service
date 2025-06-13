@@ -108,7 +108,7 @@
                         <span class="badge bg-secondary">{{ total_photos }}</span>
                     </h5>
                     {% if is_own_profile %}
-                        <a href="{% url 'upload_photo' %}" class="btn btn-success btn-sm">
+                        <a href="{% url 'photos:upload_photo' %}" class="btn btn-success btn-sm">
                             <i class="fas fa-plus"></i> Добавить фото
                         </a>
                     {% endif %}
@@ -119,12 +119,12 @@
                             {% for photo in user_photos %}
                                 <div class="col-md-4 mb-3">
                                     <div class="card h-100">
-                                        <a href="{% url 'photo_detail_slug' photo.slug %}">
+                                        <a href="{% url 'photos:photo_detail_slug' photo.slug %}">
                                             <img src="{{ photo.image.url }}" class="card-img-top" alt="{{ photo.title }}" style="height: 200px; object-fit: cover;">
                                         </a>
                                         <div class="card-body p-2">
                                             <h6 class="card-title mb-1">
-                                                <a href="{% url 'photo_detail_slug' photo.slug %}" class="text-decoration-none">
+                                                <a href="{% url 'photos:photo_detail_slug' photo.slug %}" class="text-decoration-none">
                                                     {{ photo.title|truncatechars:30 }}
                                                 </a>
                                             </h6>
@@ -134,10 +134,10 @@
                                             
                                             {% if is_own_profile %}
                                                 <div class="mt-2">
-                                                    <a href="{% url 'edit_photo' photo.slug %}" class="btn btn-sm btn-outline-primary">
+                                                    <a href="{% url 'photos:edit_photo' photo.slug %}" class="btn btn-sm btn-outline-primary">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
-                                                    <a href="{% url 'delete_photo' photo.slug %}" class="btn btn-sm btn-outline-danger" 
+                                                    <a href="{% url 'photos:delete_photo' photo.slug %}" class="btn btn-sm btn-outline-danger" 
                                                        onclick="return confirm('Удалить фотографию?')">
                                                         <i class="fas fa-trash"></i>
                                                     </a>
@@ -151,7 +151,7 @@
                         
                         {% if total_photos > 6 %}
                             <div class="text-center mt-3">
-                                <a href="{% url 'photo_list' %}?user={{ profile_user.username }}" class="btn btn-outline-primary">
+                                <a href="{% url 'photos:photo_list' %}?user={{ profile_user.username }}" class="btn btn-outline-primary">
                                     Показать все фотографии ({{ total_photos }})
                                 </a>
                             </div>
@@ -167,7 +167,7 @@
                                 {% endif %}
                             </h5>
                             {% if is_own_profile %}
-                                <a href="{% url 'upload_photo' %}" class="btn btn-primary mt-2">
+                                <a href="{% url 'photos:upload_photo' %}" class="btn btn-primary mt-2">
                                     <i class="fas fa-plus"></i> Загрузить первую фотографию
                                 </a>
                             {% endif %}
