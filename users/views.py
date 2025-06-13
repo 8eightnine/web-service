@@ -19,7 +19,7 @@ class LoginUser(LoginView):
     extra_context = {'title': 'Авторизация'}
 
     def get_success_url(self):
-        return reverse_lazy('photo_list')
+        return reverse_lazy('photos:photo_list')
 
 
 class RegisterUser(CreateView):
@@ -27,7 +27,7 @@ class RegisterUser(CreateView):
     form_class = UserRegistrationForm
     template_name = 'users/register.html'
     extra_context = {'title': 'Регистрация'}
-    success_url = reverse_lazy('photo_list')
+    success_url = reverse_lazy('photos:photo_list')
 
     def form_valid(self, form):
         """Обработка успешной регистрации"""
