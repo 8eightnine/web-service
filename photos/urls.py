@@ -3,6 +3,7 @@ from . import views, converters
 
 register_converter(converters.StringConverter, 'string')
 register_converter(converters.YearConverter, 'year')
+app_name = 'photos'  # Определяем namespace
 
 urlpatterns = [
     # Class-based views

@@ -7,10 +7,13 @@ from django.views import View
 from photos.views import PhotoListView
 
 
-class HomePageView(PhotoListView):
+class HomePageView(View):
     """Main home page - redirects to photo list"""
     def get(self, request):
-        return redirect(PhotoListView.as_view())
+        return redirect('photos:photo_list')  # Используем namespace и name
+    
+    def post(self, request):
+        return redirect('photos:photo_list')
 
 
 class LoginView(View):
@@ -83,8 +86,7 @@ def register_page(request):
 
 
 def home_page(request):
-    from photos import views as photos_views
-    return photos_views.PhotoListView.as_view()
+    return redirect('photos')
 
 
 def login_view(request):
