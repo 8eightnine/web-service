@@ -83,7 +83,7 @@ class UploadPhotoView(DataMixin, CreateView):
                 ]
                 photo.tags.add(*tags_list)
 
-            self.success_url = reverse_lazy('photo_detail_slug',
+            self.success_url = reverse_lazy('photos:photo_detail_slug',
                                             kwargs={'slug': photo.slug})
             return super().form_valid(form)
         except Exception as e:
@@ -132,7 +132,7 @@ class UploadPhotoNonModelView(DataMixin, FormView):
                 ]
                 photo.tags.add(*tags_list)
 
-            self.success_url = reverse_lazy('photo_detail_slug',
+            self.success_url = reverse_lazy('photos:photo_detail_slug',
                                             kwargs={'slug': photo.slug})
             return super().form_valid(form)
         except Exception as e:
@@ -153,7 +153,7 @@ class EditPhotoView(DataMixin, LoginRequiredMixin, UpdateView):
     title_page = 'Редактировать фотографию'
 
     def get_success_url(self):
-        return reverse_lazy('photo_detail_slug',
+        return reverse_lazy('photos:photo_detail_slug',
                             kwargs={'slug': self.object.slug})
 
     def get_object(self, queryset=None):
