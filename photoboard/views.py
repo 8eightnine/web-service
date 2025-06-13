@@ -9,7 +9,8 @@ from photos.views import PhotoListView
 
 class HomePageView(PhotoListView):
     """Main home page - redirects to photo list"""
-    pass
+    def get(self, request):
+        return redirect(PhotoListView.as_view())
 
 
 class LoginView(View):
